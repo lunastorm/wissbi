@@ -14,6 +14,7 @@ add_executable(runUnitTests
     sub_entry_test.cpp
     sub_dir_test.cpp
     util_test.cpp
+    line_block_policy_test.cpp
 )
 
 target_link_libraries(runUnitTests ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY} pthread)
