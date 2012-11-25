@@ -22,7 +22,9 @@ build: tmp/udt4
 
 test: tmp/gtest-1.6.0
 	mkdir -p tmp/test
-	cd tmp/test && cmake ../../test && make && ./runUnitTests
+	mkdir -p output/test
+	cd tmp/test && cmake ../../test && make && ./runUnitTests --gtest_output=xml && mv test_detail.xml ../../output/test
 
 clean:
 	rm -rf tmp
+	rm -rf output
