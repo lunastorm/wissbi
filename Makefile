@@ -16,6 +16,13 @@ tmp/gtest-1.6.0:
 	cd tmp/gtest-1.6.0 ; cmake . && make
 	rm -f tmp/gtest-1.6.0.zip
 
+tmp/gmock-1.6.0:
+	mkdir -p tmp/
+	cp 3rd_party/gmock-1.6.0.zip tmp
+	cd tmp ; unzip gmock-1.6.0.zip
+	cd tmp/gmock-1.6.0 ; cmake . && make
+	rm -f tmp/gtest-1.6.0.zip
+
 build: tmp/udt4
 	mkdir -p tmp/build
 	cd tmp/build && cmake ../../src && make
