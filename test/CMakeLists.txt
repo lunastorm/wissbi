@@ -27,6 +27,7 @@ add_executable(runUnitTests
     util_test.cpp
     line_block_policy_test.cpp
     msg_filter_test.cpp
+    length_block_policy_test.cpp
 )
 
 target_link_libraries(runUnitTests ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY} ${GMOCK_LIBRARY} pthread)
