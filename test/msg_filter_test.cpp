@@ -1,8 +1,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "line_block_policy.hpp"
 #include "msg_filter.hpp"
-#include <iostream>
+#include "msg_buf.hpp"
 
 using ::testing::_;
 using ::testing::Return;

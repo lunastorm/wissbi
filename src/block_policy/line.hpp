@@ -1,12 +1,13 @@
-#ifndef WISSBI_LINE_BLOCK_POLICY_HPP_
-#define WISSBI_LINE_BLOCK_POLICY_HPP_
+#ifndef WISSBI_BLOCK_POLICY_LINE_HPP_
+#define WISSBI_BLOCK_POLICY_LINE_HPP_
 
 #include "msg_buf.hpp"
 #include <iosfwd>
 
 namespace wissbi {
+namespace block_policy {
 
-class LineBlockPolicy
+class Line
 {
     public:
     bool Read(std::istream& is, MsgBuf* msg_buf) {
@@ -22,5 +23,6 @@ class LineBlockPolicy
 };
 
 }
+}
 
-#endif  // WISSBI_LINE_BLOCK_POLICY_HPP_
+#endif  // WISSBI_BLOCK_POLICY_LINE_HPP_
