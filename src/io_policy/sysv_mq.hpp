@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 namespace wissbi {
 namespace io_policy {
@@ -12,7 +14,13 @@ namespace io_policy {
 class SysvMq {
     public:
     SysvMq() {
-        mqid_ = msgget(IPC_PRIVATE, S_IRUSR|S_IWUSR);
+        std::ostringstream oss;
+        oss << "/tmp/wissbi.sysvmq." << getpid();
+        key_file_ = oss.str();
+        int res = creat(key_file_.c_str(), O_RDONLY | S_IRUSR | S_IWUSR);
+        close(res);
+        key_ = ftok(key_file_.c_str(), 0);
+        mqid_ = msgget(key_, IPC_CREAT | S_IRUSR | S_IWUSR);
         if(mqid_ < 0) {
             throw "cannot acquire mq: " + std::string(strerror(errno));
         }
@@ -21,6 +29,8 @@ class SysvMq {
     ~SysvMq() {
         struct msqid_ds ds;
         msgctl(mqid_, IPC_RMID, &ds);
+        assert(0 != key_file_.length());
+        unlink(key_file_.c_str());
     }
 
     bool Put(const MsgBuf &msg) {
@@ -42,8 +52,18 @@ class SysvMq {
         return mqid_;
     }
 
+    key_t key() {
+        return key_;
+    }
+
+    std::string key_file() {
+        return key_file_;
+    }
+
     private:
     int mqid_;
+    key_t key_;
+    std::string key_file_;
 };
 
 }
