@@ -20,7 +20,7 @@ build: tmp/udt4
 	mkdir -p tmp/build
 	cd tmp/build && cmake ../../src && make
 
-test: tmp/gmock-1.6.0
+test: tmp/gmock-1.6.0 tmp/udt4
 	mkdir -p tmp/test
 	mkdir -p output/test
 	cd tmp/test && cmake ../../test && make && ./runUnitTests --gtest_output=xml && mv test_detail.xml ../../output/test

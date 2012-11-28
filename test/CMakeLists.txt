@@ -7,6 +7,12 @@ project(wissbi_test)
 enable_testing()
 
 SET(WISSBI_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../src")
+SET(UDT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../tmp/udt4/src")
+IF(APPLE)
+    SET(UDT_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/../tmp/udt4/src/libudt.dylib")
+ELSE()
+    SET(UDT_LIBRARY "${CMAKE_CURRENT_SOURCE_DIR}/../tmp/udt4/src/libudt.so")
+ENDIF()
 
 SET(GMOCK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../tmp/gmock-1.6.0")
 SET(GMOCK_INCLUDE_DIR "${GMOCK_ROOT}/include")
@@ -18,6 +24,7 @@ SET(GTEST_LIBRARY "${GTEST_ROOT}/libgtest.a")
 SET(GTEST_MAIN_LIBRARY "${GTEST_ROOT}/libgtest_main.a")
 
 include_directories(${WISSBI_SOURCE_DIR})
+include_directories(${UDT_SOURCE_DIR})
 include_directories(${GMOCK_INCLUDE_DIR})
 include_directories(${GTEST_INCLUDE_DIR})
 
@@ -29,9 +36,10 @@ add_executable(runUnitTests
     msg_filter_test.cpp
     length_io_policy_test.cpp
     sysv_mq_io_policy_test.cpp
+    udt_io_policy_test.cpp
 )
 
-target_link_libraries(runUnitTests ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY} ${GMOCK_LIBRARY} pthread)
+target_link_libraries(runUnitTests ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY} ${GMOCK_LIBRARY} pthread ${UDT_LIBRARY})
 
 add_test(
     NAME runUnitTests
