@@ -24,7 +24,12 @@ class Length : public IOStreamBase
     }
 
     bool Put(const MsgBuf &msg) {
-        return false;
+        if(msg.len <= 0) {
+            return false;
+        }
+        (*os_ptr_) << msg.len << " ";
+        os_ptr_->write(msg.buf, msg.len);
+        return true;
     }
 };
 
