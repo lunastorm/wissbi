@@ -1,27 +1,27 @@
 #ifndef WISSBI_MSG_FILTER_HPP_
 #define WISSBI_MSG_FILTER_HPP_
 
-#include <iosfwd>
+#include "msg_buf.hpp"
 
 namespace wissbi {
 
 template
 <
-    class input_policy
+    class input_policy,
+    class output_policy
 >
-class MsgFilter : public input_policy
+class MsgFilter : public input_policy, public output_policy
 {
-    using input_policy::Read;
+    using input_policy::Get;
+    using output_policy::Put;
 
     public:
-    MsgFilter(std::istream& is) : is_(is) {}
-
     bool Filter(){
-        return Read(is_, NULL);
+        return Get(&msg_buf_) && Put(msg_buf_);
     }
 
     private:
-    std::istream& is_;
+    MsgBuf msg_buf_;
 };
 
 }

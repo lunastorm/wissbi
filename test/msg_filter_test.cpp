@@ -1,14 +1,22 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "msg_filter.hpp"
-#include "msg_buf.hpp"
 
+using wissbi::MsgBuf;
+using wissbi::MsgFilter;
 using ::testing::_;
 using ::testing::Return;
 
-class MockPolicy {
+class MockInputPolicy {
     public:
-    MOCK_METHOD2(Read, bool(std::istream& is, wissbi::MsgBuf* msg_buf));
+    MOCK_METHOD1(Get, bool(MsgBuf *msg_buf));
+    MOCK_METHOD1(Put, bool(const MsgBuf &msg_buf));
+};
+
+class MockOutputPolicy {
+    public:
+    MOCK_METHOD1(Get, bool(MsgBuf *msg_buf));
+    MOCK_METHOD1(Put, bool(const MsgBuf &msg_buf));
 };
 
 class MsgFilterTest : public ::testing::Test {
@@ -21,9 +29,9 @@ class MsgFilterTest : public ::testing::Test {
 };
 
 TEST_F(MsgFilterTest, ReadFail) {
-    wissbi::MsgFilter<MockPolicy> msg_filter(std::cin);
-
-    EXPECT_CALL(msg_filter, Read(_, NULL)).WillOnce(Return(false));
-    EXPECT_FALSE(msg_filter.Filter());
+    MsgFilter<MockInputPolicy, MockOutputPolicy> filter;
+    EXPECT_CALL(static_cast<MockInputPolicy&>(filter), Get(_)).WillOnce(Return(false));
+    EXPECT_CALL(static_cast<MockOutputPolicy&>(filter), Put(_)).Times(0);
+    EXPECT_FALSE(filter.Filter());
 }
 
