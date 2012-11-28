@@ -7,6 +7,7 @@
 #include <sys/msg.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <assert.h>
 
 namespace wissbi {
 namespace io_policy {

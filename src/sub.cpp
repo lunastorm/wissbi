@@ -5,6 +5,9 @@
 #include <thread>
 #include <set>
 #include <udt.h>
+#include "msg_filter.hpp"
+#include "io_policy/line.hpp"
+#include "io_policy/sysv_mq.hpp"
 #include "sub_entry.hpp"
 
 using namespace std;
@@ -16,18 +19,14 @@ void exit_signal_handler(int signum) {
     run = false;
 }
 
-typedef struct output_msg {
-    long mtype;
-    char buf[4001];
-} output_msg;
-
 void *receiver_loop(UDTSOCKET recver) {
     cerr << "in here recver: " << recver << endl;
     //recver_arg *arg_ptr = (recver_arg*)arg;
     //UDTSOCKET recver = arg_ptr->recver;
 
-    output_msg msg;
-    msg.mtype = 1;
+io_policy::SysvMq mq;
+MsgBuf msg;
+
     for(;;) {
 //        cerr << "before recv " << recver << endl;
         int rsize = UDT::recvmsg(recver, msg.buf, 4000);
@@ -36,10 +35,8 @@ void *receiver_loop(UDTSOCKET recver) {
             cerr << "recv error " << UDT::getlasterror().getErrorMessage() << endl;
             break;
         }
-        msg.buf[rsize] = '\0';
-        cout << "rsize: " << rsize << " content: " << msg.buf << endl;
-        //int res = msgsnd(mqid, &msg, rsize + sizeof(long), 0);
-        //cerr << "res: " << res << endl;
+msg.len = rsize;
+mq.Put(msg);
     }
 }
 
@@ -86,6 +83,10 @@ int main(int argc, char* argv[]){
 
     //cerr << "setopt res: " << UDT::setsockopt(serv, 0, UDT_SNDSYN, &is_nonblocking, sizeof(bool)) << endl;
     //cerr << "setopt res: " << UDT::setsockopt(serv, 0, UDT_RCVTIMEO, &timeout, sizeof(int)) << endl;
+    MsgFilter<io_policy::SysvMq, io_policy::Line> output_writer;
+    thread* output_th = new thread([&output_writer](){
+        output_writer.FilterLoop();
+    });
   
     while(run) {
         int eid = UDT::epoll_create();

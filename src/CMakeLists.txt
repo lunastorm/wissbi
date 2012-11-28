@@ -13,7 +13,8 @@ ELSE()
 ENDIF()
 
 include_directories(
-    ../tmp/udt4/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../tmp/udt4/src
+    .
 )
 
 add_executable(pub pub.cpp)

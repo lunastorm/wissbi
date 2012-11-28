@@ -16,8 +16,12 @@ class MsgFilter : public input_policy, public output_policy
     using output_policy::Put;
 
     public:
-    bool Filter(){
+    bool Filter() {
         return Get(&msg_buf_) && Put(msg_buf_);
+    }
+
+    void FilterLoop() {
+        while(Filter()) {}
     }
 
     private:
