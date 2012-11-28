@@ -9,13 +9,47 @@ class LineIOPolicyTest : public ::testing::Test , public wissbi::io_policy::Line
     protected:
     virtual void SetUp() {
         set_istream(&iss);
+        set_ostream(&oss);
     }
 
     virtual void TearDown() {
     }
 
     istringstream iss;
+    ostringstream oss;
 };
+
+TEST_F(LineIOPolicyTest, PutOneMsg) {
+    MsgBuf msg_buf;
+    string msg("foo bar,12345 Hello World");
+    strncpy(msg_buf.buf, msg.c_str(), msg.length());
+    msg_buf.len = msg.length();
+
+    EXPECT_TRUE(Put(msg_buf));
+    EXPECT_STREQ((msg + "\n").c_str(), oss.str().c_str());
+}
+
+TEST_F(LineIOPolicyTest, PutMoreMsg) {
+    MsgBuf msg_buf;
+    string msg1("foo bar,12345 Hello World");
+    string msg2("1234567");
+    string msg3("1234567asdflkjadf");
+    strncpy(msg_buf.buf, msg1.c_str(), msg1.length());
+    msg_buf.len = msg1.length();
+
+    EXPECT_TRUE(Put(msg_buf));
+
+    strncpy(msg_buf.buf, msg2.c_str(), msg2.length());
+    msg_buf.len = msg2.length();
+
+    EXPECT_TRUE(Put(msg_buf));
+
+    strncpy(msg_buf.buf, msg3.c_str(), msg3.length());
+    msg_buf.len = msg3.length();
+
+    EXPECT_TRUE(Put(msg_buf));
+    EXPECT_STREQ((msg1 + "\n" + msg2 + "\n" + msg3 + "\n").c_str(), oss.str().c_str());
+}
 
 TEST_F(LineIOPolicyTest, GetEmpty) {
     MsgBuf msg_buf;

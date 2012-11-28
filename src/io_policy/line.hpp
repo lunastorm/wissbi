@@ -22,7 +22,9 @@ class Line : public IOStreamBase
     }
 
     bool Put(const MsgBuf &msg) {
-        return false;
+        os_ptr_->write(msg.buf, msg.len);
+        os_ptr_->write("\n", 1);
+        return true;
     }
 };
 
