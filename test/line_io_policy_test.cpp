@@ -19,6 +19,13 @@ class LineIOPolicyTest : public ::testing::Test , public Line {
     ostringstream oss;
 };
 
+TEST_F(LineIOPolicyTest, PutEmpty) {
+    MsgBuf msg_buf;
+    msg_buf.len = 0;
+    EXPECT_FALSE(Put(msg_buf));
+    EXPECT_EQ(0, oss.str().length());
+}
+
 TEST_F(LineIOPolicyTest, PutOneMsg) {
     MsgBuf msg_buf;
     string msg("foo bar,12345 Hello World");

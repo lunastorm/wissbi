@@ -22,6 +22,9 @@ class Line : public IOStreamBase
     }
 
     bool Put(const MsgBuf &msg) {
+        if(msg.len <= 0) {
+            return false;
+        }
         os_ptr_->write(msg.buf, msg.len);
         os_ptr_->write("\n", 1);
         return true;
