@@ -5,7 +5,7 @@ using wissbi::MsgBuf;
 using wissbi::io_policy::Line;
 using namespace std;
 
-class LineIOPolicyTest : public ::testing::Test , public wissbi::io_policy::Line {
+class LineIOPolicyTest : public ::testing::Test , public Line {
     protected:
     virtual void SetUp() {
         set_istream(&iss);

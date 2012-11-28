@@ -27,7 +27,7 @@ add_executable(runUnitTests
     util_test.cpp
     line_io_policy_test.cpp
     msg_filter_test.cpp
-    length_block_policy_test.cpp
+    length_io_policy_test.cpp
     sysvmq_wrapper_test.cpp
 )
 
