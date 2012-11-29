@@ -62,6 +62,12 @@ class SysvMq {
         return key_file_;
     }
 
+    int GetCount() {
+        struct msqid_ds ds;
+        msgctl(mqid_, IPC_STAT, &ds);
+        return ds.msg_qnum;
+    }
+
     private:
     int mqid_;
     key_t key_;

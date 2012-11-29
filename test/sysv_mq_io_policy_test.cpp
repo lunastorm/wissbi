@@ -129,3 +129,26 @@ TEST_F(SysvMqIOPolicyTest, MultiInstancePutGet) {
     EXPECT_TRUE(mq2.Get(&new_buf));
     EXPECT_STREQ(msg.c_str(), string(new_buf.buf, new_buf.len).c_str());
 }
+
+TEST_F(SysvMqIOPolicyTest, GetCount) {
+    SysvMq mq;
+    EXPECT_GE(mq.mqid(), 0);
+    EXPECT_EQ(0, mq.GetCount());
+
+    MsgBuf msg_buf;
+    string msg("Hello World");
+    strncpy(msg_buf.buf, msg.c_str(), msg.length());
+    msg_buf.len = msg.length();
+
+    EXPECT_TRUE(mq.Put(msg_buf));
+    EXPECT_EQ(1, mq.GetCount());
+
+    EXPECT_TRUE(mq.Put(msg_buf));
+    EXPECT_EQ(2, mq.GetCount());
+
+    EXPECT_TRUE(mq.Get(&msg_buf));
+    EXPECT_EQ(1, mq.GetCount());
+
+    EXPECT_TRUE(mq.Get(&msg_buf));
+    EXPECT_EQ(0, mq.GetCount());
+}
