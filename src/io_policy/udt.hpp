@@ -29,7 +29,7 @@ class Udt {
     }
 
     bool Get(MsgBuf *msg_ptr) {
-        int res = UDT::recvmsg(sock_, msg_ptr->buf, msg_ptr->len);
+        int res = UDT::recvmsg(sock_, msg_ptr->buf, wissbi::MAX_MSG_SIZE);
         if(res <= 0) {
             msg_ptr->len = 0;
             return false;

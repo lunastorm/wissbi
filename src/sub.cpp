@@ -8,6 +8,7 @@
 #include "msg_filter.hpp"
 #include "io_policy/line.hpp"
 #include "io_policy/sysv_mq.hpp"
+#include "io_policy/udt.hpp"
 #include "sub_entry.hpp"
 
 using namespace std;
@@ -17,27 +18,6 @@ bool run = true;
 
 void exit_signal_handler(int signum) {
     run = false;
-}
-
-void *receiver_loop(UDTSOCKET recver) {
-    cerr << "in here recver: " << recver << endl;
-    //recver_arg *arg_ptr = (recver_arg*)arg;
-    //UDTSOCKET recver = arg_ptr->recver;
-
-io_policy::SysvMq mq;
-MsgBuf msg;
-
-    for(;;) {
-//        cerr << "before recv " << recver << endl;
-        int rsize = UDT::recvmsg(recver, msg.buf, 4000);
-  //      cerr << "after recv rsize " <<rsize << endl;
-        if(rsize == UDT::ERROR) {
-            cerr << "recv error " << UDT::getlasterror().getErrorMessage() << endl;
-            break;
-        }
-msg.len = rsize;
-mq.Put(msg);
-    }
 }
 
 int main(int argc, char* argv[]){
@@ -69,8 +49,6 @@ int main(int argc, char* argv[]){
     tmp << "192.168.0.202:" << ntohs(my_addr.sin_port);
 
     
-    //SubEntry sub_entry("/var/lib/wissbi", argv[1], tmp.str());
-    //thread heartbeat_th(heartbeat_loop, std::move(SubEntry("/var/lib/wissbi", argv[1], tmp.str())));
     SubEntry sub_entry("/var/lib/wissbi", argv[1], tmp.str());
 
     int namelen;
@@ -102,16 +80,14 @@ int main(int argc, char* argv[]){
     cerr << "setopt res: " << UDT::setsockopt(res, 0, UDT_RCVSYN, &is_blocking, sizeof(bool)) << endl;
     int timeout = -1;
     cerr << "setopt res: " << UDT::setsockopt(res, 0, UDT_RCVTIMEO, &timeout, sizeof(int)) << endl;
-            thread* rcv_th = new thread(receiver_loop, res);
+            thread([res]{
+                MsgFilter<io_policy::Udt, io_policy::SysvMq> filter;
+                filter.AttachConnectedSock(res);
+                filter.FilterLoop();
+            }).detach();
         }
         sub_entry.renew();
         UDT::epoll_release(eid);
-/*
-        recver_arg* arg = (recver_arg*)malloc(sizeof(recver_arg));
-        arg->recver = recver;
-        pthread_t t;
-        pthread_create(&t, NULL, receiver_loop, arg);
-*/
     }
 
     return 0;
