@@ -27,5 +27,11 @@ int main(int argc, char* argv[]) {
 
     MsgFilter<io_policy::Line, io_policy::SysvMq> input_filter;
     input_filter.FilterLoop();
+
+    int wait_cnt = 0;
+    while(input_filter.GetCount() > 0 && wait_cnt++ < 100) {
+        this_thread::sleep_for(chrono::milliseconds(10));
+    }
+
 	return 0;
 }
