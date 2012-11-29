@@ -10,7 +10,7 @@ namespace io_policy {
 class Udt {
     public:
     Udt() {
-        //sock_ = UDT::socket(AF_INET, SOCK_DGRAM, 0);
+        sock_ = UDT::socket(AF_INET, SOCK_DGRAM, 0);
     }
 
     ~Udt() {
@@ -22,7 +22,6 @@ class Udt {
             return false;
         }
         int res = UDT::sendmsg(sock_, msg.buf, msg.len, 100);
-  std::cerr<<"res: " << res << std::endl;
         if(UDT::ERROR == res) {
             return false;
         }
@@ -30,16 +29,20 @@ class Udt {
     }
 
     bool Get(MsgBuf *msg_ptr) {
-        return false;
+        int res = UDT::recvmsg(sock_, msg_ptr->buf, msg_ptr->len);
+        if(res <= 0) {
+            msg_ptr->len = 0;
+            return false;
+        }
+        msg_ptr->len = res;
+        return true;
     }
 
     void Connect(sockaddr* addr) {
-        sock_ = UDT::socket(AF_INET, SOCK_DGRAM, 0);
         if(UDT::ERROR == UDT::connect(sock_, addr, sizeof(*addr))) {
             std::cerr << "connect error: " << UDT::getlasterror().getErrorMessage() << std::endl;
-            //std::cerr << inet_ntoa(saddr.sin_addr) <<":"<<ntohs(saddr.sin_port)<< std::endl;
+            throw "connect error";
         }
-        std::cerr << "connected" << std::endl;
     }
 
     private:
