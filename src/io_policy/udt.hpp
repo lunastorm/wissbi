@@ -45,6 +45,11 @@ class Udt {
         }
     }
 
+    void AttachConnectedSock(UDTSOCKET sock) {
+        close(sock_);
+        sock_ = sock;
+    }
+
     private:
     UDTSOCKET sock_;
 };

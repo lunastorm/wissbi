@@ -74,4 +74,17 @@ TEST_F(UdtIOPolicyTest, GetOne) {
     EXPECT_STREQ(msg.c_str(), string(new_buf.buf, new_buf.len).c_str());
 }
 
+TEST_F(UdtIOPolicyTest, AttachConnectedSock) {
+    string msg("Hello World");
+    MsgBuf msg_buf;
+    strncpy(msg_buf.buf, msg.c_str(), msg.length());
+    msg_buf.len = msg.length();
 
+    MsgBuf new_buf;
+    UDTSOCKET new_sock = UDT::socket(AF_INET, SOCK_DGRAM, 0);
+    ASSERT_NE(UDT::ERROR, UDT::connect(new_sock, reinterpret_cast<sockaddr*>(&serv_addr_), sizeof(serv_addr_)));
+    AttachConnectedSock(new_sock);
+    ASSERT_NE(UDT::ERROR, UDT::sendmsg(sock_, msg_buf.buf, msg_buf.len));
+    EXPECT_TRUE(Get(&new_buf));
+    EXPECT_STREQ(msg.c_str(), string(new_buf.buf, new_buf.len).c_str());
+}
