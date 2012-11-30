@@ -20,6 +20,8 @@ void ConnectStringToSockaddr(const std::string& conn_str, sockaddr_in* addr_ptr)
     int port;
     iss >> port;
     addr_ptr->sin_port = htons(port);
+
+    addr_ptr->sin_family = AF_INET;
 }
 
 }
