@@ -96,6 +96,7 @@ TEST_F(SysvMqIOPolicyTest, MultiInstanceConstructDestruct) {
         SysvMq mq2;
         EXPECT_GE(mq2.mqid(), 0);
         mqid2 = mq2.mqid();
+        EXPECT_EQ(mq1.mqid(), mq2.mqid());
         ostringstream oss2;
         oss2 << "ipcs -q | grep " << mq2.mqid();
         EXPECT_EQ(0, system(oss2.str().c_str()));
@@ -105,12 +106,8 @@ TEST_F(SysvMqIOPolicyTest, MultiInstanceConstructDestruct) {
     EXPECT_NE(0, system(oss1.str().c_str()));
 
     ostringstream oss2;
-    oss2 << "ipcs -q | grep " << mqid2;
+    oss2 << "ls " << key_file;
     EXPECT_NE(0, system(oss2.str().c_str()));
-
-    ostringstream oss3;
-    oss3 << "ls " << key_file;
-    EXPECT_NE(0, system(oss3.str().c_str()));
 }
 
 TEST_F(SysvMqIOPolicyTest, MultiInstancePutGet) {
@@ -151,4 +148,33 @@ TEST_F(SysvMqIOPolicyTest, GetCount) {
 
     EXPECT_TRUE(mq.Get(&msg_buf));
     EXPECT_EQ(0, mq.GetCount());
+}
+
+TEST_F(SysvMqIOPolicyTest, NoCleanup) {
+    int mqid1;
+    int mqid2;
+    string key_file;
+
+    SysvMq* mq1_ptr = new SysvMq();
+    EXPECT_GE(mq1_ptr->mqid(), 0);
+    mqid1 = mq1_ptr->mqid();
+    key_file = mq1_ptr->key_file();
+    ostringstream oss;
+    oss << "ipcs -q | grep " << mq1_ptr->mqid();
+    EXPECT_EQ(0, system(oss.str().c_str()));
+
+    SysvMq mq2;
+    EXPECT_GE(mq2.mqid(), 0);
+    mqid2 = mq2.mqid();
+    ostringstream oss2;
+    oss2 << "ipcs -q | grep " << mq2.mqid();
+    EXPECT_EQ(0, system(oss2.str().c_str()));
+
+    mq1_ptr->set_cleanup(false);
+    delete mq1_ptr;
+    EXPECT_EQ(0, system(oss2.str().c_str()));
+
+    ostringstream oss3;
+    oss3 << "ls " << key_file;
+    EXPECT_EQ(0, system(oss3.str().c_str()));
 }

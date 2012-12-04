@@ -66,6 +66,7 @@ int main(int argc, char* argv[]){
             setsockopt(res, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)); 
             thread([res]{
                 MsgFilter<io_policy::TCP, io_policy::SysvMq> filter;
+                filter.set_cleanup(false);
                 filter.AttachConnectedSock(res);
                 filter.FilterLoop();
             }).detach();

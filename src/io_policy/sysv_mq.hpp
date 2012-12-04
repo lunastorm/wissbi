@@ -16,6 +16,7 @@ namespace io_policy {
 class SysvMq {
     public:
     SysvMq() {
+        cleanup_ = true;
         std::ostringstream oss;
         oss << "/tmp/wissbi.sysvmq." << getpid();
         key_file_ = oss.str();
@@ -29,6 +30,9 @@ class SysvMq {
     }
 
     ~SysvMq() {
+        if(!cleanup_) {
+            return;
+        }
         struct msqid_ds ds;
         msgctl(mqid_, IPC_RMID, &ds);
         assert(0 != key_file_.length());
@@ -68,10 +72,15 @@ class SysvMq {
         return ds.msg_qnum;
     }
 
+    void set_cleanup(bool cleanup) {
+        cleanup_ = cleanup;
+    }
+
     private:
     int mqid_;
     key_t key_;
     std::string key_file_;
+    bool cleanup_;
 };
 
 }
