@@ -5,8 +5,7 @@
 
 using wissbi::MsgBuf;
 using wissbi::io_policy::TCP;
-using std::string;
-using std::thread;
+using namespace std;
 
 class TCPIOPolicyTest : public ::testing::Test, public TCP {
     protected:
@@ -20,7 +19,7 @@ class TCPIOPolicyTest : public ::testing::Test, public TCP {
         serv_addr_.sin_addr.s_addr = inet_addr("127.0.0.1");
         memset(&(serv_addr_.sin_zero), '\0', 8);
 
-        ASSERT_NE(-1, bind(serv_, reinterpret_cast<sockaddr*>(&serv_addr_), sizeof(serv_addr_)));
+        ASSERT_NE(-1, ::bind(serv_, reinterpret_cast<sockaddr*>(&serv_addr_), sizeof(serv_addr_)));
         ASSERT_NE(-1, listen(serv_, 10));
         socklen_t len;
         ASSERT_NE(-1, getsockname(serv_, reinterpret_cast<sockaddr*>(&serv_addr_), &len));
@@ -41,6 +40,14 @@ class TCPIOPolicyTest : public ::testing::Test, public TCP {
         close(sock_);
     }
 
+    bool accepted() {
+        int retry_count = 0;
+        while(sock_ == -1 && retry_count++ < 100) {
+            this_thread::sleep_for(chrono::milliseconds(10));
+        }
+        return sock_ != -1;
+    }
+
     int serv_;
     int sock_;
     sockaddr_in serv_addr_;
@@ -50,6 +57,7 @@ TEST_F(TCPIOPolicyTest, PutEmpty) {
     MsgBuf msg_buf;
     msg_buf.len = 0;
     Connect(reinterpret_cast<sockaddr*>(&serv_addr_));
+    EXPECT_TRUE(accepted());
     EXPECT_FALSE(Put(msg_buf));
 }
 
@@ -61,7 +69,7 @@ TEST_F(TCPIOPolicyTest, PutOne) {
 
     MsgBuf new_buf;
     Connect(reinterpret_cast<sockaddr*>(&serv_addr_));
-    while(sock_ == -1) {}
+    EXPECT_TRUE(accepted());
     EXPECT_TRUE(Put(msg_buf));
 
     uint32_t len_header;
@@ -80,7 +88,7 @@ TEST_F(TCPIOPolicyTest, GetOne) {
 
     MsgBuf new_buf;
     Connect(reinterpret_cast<sockaddr*>(&serv_addr_));
-    while(sock_ == -1) {}
+    EXPECT_TRUE(accepted());
 
     uint32_t len_header = htonl(msg_buf.len);
     EXPECT_TRUE(WriteAll(sock_, reinterpret_cast<char*>(&len_header), 4));
@@ -98,7 +106,7 @@ TEST_F(TCPIOPolicyTest, AttachConnectedSock) {
     MsgBuf new_buf;
     int new_sock = socket(AF_INET, SOCK_STREAM, 0);
     ASSERT_NE(-1, connect(new_sock, reinterpret_cast<sockaddr*>(&serv_addr_), sizeof(serv_addr_)));
-    while(sock_ == -1) {}
+    EXPECT_TRUE(accepted());
     AttachConnectedSock(new_sock);
 
     uint32_t len_header = htonl(msg_buf.len);
