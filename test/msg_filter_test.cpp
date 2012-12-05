@@ -53,3 +53,32 @@ TEST_F(MsgFilterTest, FilterLoop) {
     filter.FilterLoop();
 }
 
+TEST_F(MsgFilterTest, FilterFuncFalse) {
+    bool called = false;
+    MsgFilter<MockInputPolicy, MockOutputPolicy> filter;
+    filter.set_filter_func([&called](MsgBuf& msg){
+        called = true;
+        return false;
+    });
+
+    MsgBuf *buf_ptr;
+    EXPECT_CALL(static_cast<MockInputPolicy&>(filter), Get(_)).WillOnce(Return(true));
+    EXPECT_CALL(static_cast<MockOutputPolicy&>(filter), Put(_)).Times(0);
+    EXPECT_FALSE(filter.Filter());
+    EXPECT_TRUE(called);
+}
+
+TEST_F(MsgFilterTest, FilterFuncTrue) {
+    bool called = false;
+    MsgFilter<MockInputPolicy, MockOutputPolicy> filter;
+    filter.set_filter_func([&called](MsgBuf& msg){
+        called = true;
+        return true;
+    });
+
+    MsgBuf *buf_ptr;
+    EXPECT_CALL(static_cast<MockInputPolicy&>(filter), Get(_)).WillOnce(Return(true));
+    EXPECT_CALL(static_cast<MockOutputPolicy&>(filter), Put(_)).WillOnce(Return(true));
+    EXPECT_TRUE(filter.Filter());
+    EXPECT_TRUE(called);
+}
