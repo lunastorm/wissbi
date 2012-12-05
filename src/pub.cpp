@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <iostream>
 #include <thread>
 #include "msg_filter.hpp"
@@ -10,7 +11,13 @@
 using namespace wissbi;
 using namespace std; 
 
+void exit_signal_handler(int signum) {
+}
+
 int main(int argc, char* argv[]) {
+    signal(SIGINT, exit_signal_handler);
+    signal(SIGTERM, exit_signal_handler);
+
     SubDir sub_dir("/var/lib/wissbi", argv[1]);
     for(string conn_str : sub_dir.GetSubList()) {
         thread([conn_str]{
