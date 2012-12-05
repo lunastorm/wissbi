@@ -21,3 +21,7 @@ target_link_libraries(
 target_link_libraries(
     sub pthread
 )
+
+target_link_libraries(
+    count pthread
+)
