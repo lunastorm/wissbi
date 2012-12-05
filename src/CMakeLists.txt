@@ -12,6 +12,7 @@ include_directories(
 
 add_executable(pub pub.cpp)
 add_executable(sub sub.cpp)
+add_executable(count count.cpp)
 
 target_link_libraries(
     pub pthread
