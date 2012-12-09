@@ -1,0 +1,119 @@
+#!/bin/sh
+# vim:et:ft=sh:sts=2:sw=2
+#
+# Copyright 2009 Frédéric MOULIN. All Rights Reserved.
+# Released under the LGPL (GNU Lesser General Public License)
+# Author: moulinfr@gmail.com (Frédéric MOULIN)
+#
+# shUnit2 test suite reports collector.
+#
+# This script collects test suite reports and join them into a single one.
+
+MY_NAME=`basename $0`
+MY_PATH=`dirname $0`
+
+# default assignments
+INPUTDIR='.'
+OUTPUT=''
+RECURSIVE=1
+
+# some convenient logging functions
+info() { echo "${MY_NAME}:INFO $@" >&2; }
+warn() { echo "${MY_NAME}:WARN $@" >&2; }
+error() { echo "${MY_NAME}:ERROR $@" >&2; }
+
+usage()
+{
+  echo "Usage: ${MY_NAME} [-hr] <-i input dir> <-o output file>"
+}
+
+renumber()
+{ 
+  PATTERN=$1
+  INPUTFILE=$2
+
+  # alter input pattern
+  PATTERN="\(${PATTERN}\)"
+
+  # compute the substitute pattern
+  SUBSTITUTE="\1id="
+
+  # fetch lines containing pattern within the input file
+  LINES=$(sed -n '/'"${PATTERN}"'/=' ${INPUTFILE})
+
+  # make a sed expression to insert a sequential id to lines containing pattern
+  INDEX=0
+  EXPR=''
+  for LINE in ${LINES}
+  do
+    EXPR="${EXPR}${LINE}s!"${PATTERN}"!"${SUBSTITUTE}"\"${INDEX}\" !;"
+    INDEX=$(expr ${INDEX} + 1)
+  done
+
+  # evaluate expression and insert the id
+  TMPFILE=$(mktemp "shunit.XXXX")
+  sed ''"${EXPR}"'' ${INPUTFILE} > ${TMPFILE} && mv ${TMPFILE} ${INPUTFILE} || rm ${TMPFILE}
+}
+
+collect()
+{
+  cat ${TESTSUITES} | sed '
+# insert xml header
+1i\
+<?xml version="1.0" encoding="UTF-8"?>\
+<testsuites>
+
+# delete existing xml headers
+/<?xml version="1.0" encoding="UTF-8"?>/d
+
+# append closing footer
+$a\
+</testsuites>' > ${OUTPUT}
+}
+
+# process command line flags
+while getopts 'hi:o:r' opt
+do
+  case ${opt} in
+    h) usage ; exit 0 ;;  # output help
+    i) INPUTDIR=${OPTARG} ;;
+    o) OUTPUT=${OPTARG} ;;
+    r) RECURSIVE=0 ;;
+    *) usage; exit 1 ;;
+  esac
+done
+shift $(expr ${OPTIND} - 1)
+
+#
+# forge output file name if not set
+#
+[ -z ${OUTPUT} ] && OUTPUT='TESTS-TestSuites.xml'
+
+#
+# retrieve test suites
+#
+if [ ${RECURSIVE} -eq 0 ]
+then
+  TESTSUITES=$(find ${INPUTDIR} -iname "*.xml")
+else
+  TESTSUITES=$(find ${INPUTDIR} -maxdepth ${RECURSIVE} -iname "*.xml")
+fi
+
+#
+# check test suites availability
+#
+if [ -z "${TESTSUITES}" ]
+then
+  error "no test suite found; exiting"
+  exit 1
+fi
+
+#
+# concatenate test reports all together
+#
+collect ${TESTSUITES}
+
+#
+# renumber resulting test report
+#
+renumber '<testsuite[[:space:]]\+' ${OUTPUT}

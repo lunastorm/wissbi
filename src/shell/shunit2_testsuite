@@ -1,0 +1,90 @@
+#! /bin/sh
+# vim:et:ft=sh:sts=2:sw=2
+#
+# Copyright 2009 Frédéric MOULIN. All Rights Reserved.
+# Released under the LGPL (GNU Lesser General Public License)
+# Author: moulinfr@gmail.com (Frédéric MOULIN)
+#
+# shUnit2 unit test suite runner.
+#
+# This script runs all the unit tests that can be found.
+
+MY_NAME=`basename $0`
+MY_PATH=`dirname $0`
+
+shell=${SHELL}
+
+# some convenient logging functions
+info() { echo "${MY_NAME}:INFO $@" >&2; }
+warn() { echo "${MY_NAME}:WARN $@" >&2; }
+error() { echo "${MY_NAME}:ERROR $@" >&2; }
+
+usage()
+{
+  echo "Usage: ${MY_NAME} [-hr] <-i input dir> <-o output dir> <-s shell> \
+<-t testsuite(s)>"
+}
+
+# default assignments
+__INPUTDIR='.'
+__RECURSIVE=1
+__TESTSUITES=''
+
+SHUNIT_OUTPUTDIR=''
+
+# process command line flags
+while getopts 'hi:o:rs:t:' opt
+do
+  case ${opt} in
+    h) usage ; exit 0 ;;  # output help
+    i) __INPUTDIR=${OPTARG} ;;
+    o) SHUNIT_OUTPUTDIR=${OPTARG} ;;
+    r) __RECURSIVE=0 ;;
+    s) shell=${OPTARG} ;;  # shell to run
+    t) __TESTSUITES=${OPTARG} ;;  # list of test suites to run
+    *) usage; exit 1 ;;
+  esac
+done
+shift $(expr ${OPTIND} - 1)
+
+# fill shells and/or test suites
+if [ -z "${__TESTSUITES}" ]
+then
+  if [ ${__RECURSIVE} -eq 0 ]
+  then
+    __TESTSUITES=$(find ${__INPUTDIR} -type f)
+  else
+    __TESTSUITES=$(find ${__INPUTDIR} -maxdepth ${__RECURSIVE} -type f)
+  fi
+
+  # error checking
+  if [ -z "${__TESTSUITES}" ]; then
+    error 'no test suite found; exiting'
+    exit 1
+  fi
+fi
+
+# check for existence of shell
+if [ ! -x ${shell} ]
+then
+  error "unable to run tests with the ${shell} shell"
+  exit 1
+fi
+
+# redirect output according to set options
+if [ -n "${SHUNIT_OUTPUTDIR}" ]
+then
+  # create output directory if necessary
+  [ -d ${SHUNIT_OUTPUTDIR} ] || mkdir -p ${SHUNIT_OUTPUTDIR}
+fi
+
+# execute the test suites
+for __TESTSUITE in ${__TESTSUITES}
+do
+  # retrieve test suite name
+  __TESTSUITE_NAME=$(basename ${__TESTSUITE} | sed 's/\..*$//')
+  info "--- Executing the '${__TESTSUITE_NAME}' test suite ---"
+
+  # run the test suite
+  ( exec ${shell} ${__TESTSUITE} 2>&1 ; )
+done
