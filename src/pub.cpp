@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
 
-    SubDir sub_dir("/var/lib/wissbi", argv[1]);
+    SubDir sub_dir(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", argv[1]);
     for(string conn_str : sub_dir.GetSubList()) {
         thread([conn_str]{
             sockaddr sock_addr;

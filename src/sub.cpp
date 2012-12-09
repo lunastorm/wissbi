@@ -42,7 +42,7 @@ int main(int argc, char* argv[]){
     ostringstream tmp;
     tmp << "192.168.0.202:" << ntohs(((sockaddr_in*)&serv_addr)->sin_port);
     
-    SubEntry sub_entry("/var/lib/wissbi", argv[1], tmp.str());
+    SubEntry sub_entry(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", argv[1], tmp.str());
 
     MsgFilter<io_policy::SysvMq, io_policy::Line> output_writer;
     thread* output_th = new thread([&output_writer](){
