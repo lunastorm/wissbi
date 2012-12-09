@@ -34,7 +34,20 @@ add_executable(runUnitTests
 
 target_link_libraries(runUnitTests ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY} ${GMOCK_LIBRARY} pthread)
 
+add_custom_target (runIntegrationTests ALL)
+add_custom_command (
+    SOURCE runIntegrationTests
+    TARGET runIntegrationTests
+    COMMAND ${CMAKE_COMMAND}
+    ARGS -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/runIntegrationTests ${CMAKE_CURRENT_BINARY_DIR}/runIntegrationTests
+)
+
 add_test(
     NAME runUnitTests
     COMMAND runUnitTests --gtest_output=xml
+)
+
+add_test(
+    NAME runIntegrationTests
+    COMMAND runIntegrationTests
 )
