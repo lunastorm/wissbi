@@ -36,5 +36,5 @@ target_link_libraries(runUnitTests ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY} ${GMOC
 
 add_test(
     NAME runUnitTests
-    COMMAND runUnitTests
+    COMMAND runUnitTests --gtest_output=xml
 )
