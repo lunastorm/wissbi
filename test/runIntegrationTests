@@ -1,4 +1,14 @@
 #!/bin/bash
 
-echo "test"
-exit 1
+cd integration
+if [ -d ../../build ]
+then
+    BUILD_DIR=../../build
+else
+    BUILD_DIR=../../tmp/build
+fi
+
+for test_script in `ls`
+do
+    env BUILD_DIR=$BUILD_DIR ./$test_script > ../test_integration_$test_script.xml
+done
