@@ -13,6 +13,20 @@ testSendOneLineMsg()
     assertEquals "hello world" "`cat $TMP_META_DIR/received`"
 }
 
+testSendRandomMsg()
+{
+    env WISSBI_META_DIR=$TMP_META_DIR $BUILD_DIR/sub foo > $TMP_META_DIR/received &
+    SUB_PID=$!
+
+    sleep 1
+    dd if=/dev/urandom bs=1M count=1 | base64 > $TMP_META_DIR/input
+    cat $TMP_META_DIR/input | env WISSBI_META_DIR=$TMP_META_DIR $BUILD_DIR/pub foo 
+    sleep 1
+    kill $SUB_PID
+
+    assertTrue "diff $TMP_META_DIR/input $TMP_META_DIR/received"
+}
+
 oneTimeSetUp()
 {
     if [ -z "$BUILD_DIR" ]
