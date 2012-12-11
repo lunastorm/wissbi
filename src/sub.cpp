@@ -1,6 +1,5 @@
 #include <string.h>
 #include <signal.h>
-#include <netdb.h>
 #include <iostream>
 #include <sstream>
 #include <thread>
@@ -41,15 +40,7 @@ int main(int argc, char* argv[]){
     cerr <<"after listen port "<<ntohs(((sockaddr_in*)&serv_addr)->sin_port)<<endl;
 
     ostringstream tmp;
-    char buf[256];
-    gethostname(buf, 256);
-    struct addrinfo addr_hint;
-    memset(&addr_hint, 0, sizeof(struct addrinfo));
-    addr_hint.ai_family = AF_INET;
-    addr_hint.ai_socktype = SOCK_STREAM;
-    struct addrinfo *addr_head;
-    getaddrinfo(buf, NULL, &addr_hint, &addr_head);
-    tmp << inet_ntoa(((struct sockaddr_in *)(addr_head->ai_addr))->sin_addr) << ":" << ntohs(((sockaddr_in*)&serv_addr)->sin_port);
+    tmp << util::GetHostIP() << ":" << ntohs(((sockaddr_in*)&serv_addr)->sin_port);
     
     SubEntry sub_entry(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", argv[1], tmp.str());
 

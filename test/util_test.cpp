@@ -9,3 +9,11 @@ TEST(UtilTest, TestConnectStringToSockaddr) {
     EXPECT_EQ(AF_INET, in_addr.sin_family);
 }
 
+TEST(UtilTest, TestGetHostIP) {
+    FILE *f = popen("hostname -i", "r");
+    char buf[20];
+    size_t n = fread(buf, 1, 20, f);
+    buf[n-1] = '\0';
+    pclose(f);
+    EXPECT_STREQ(buf, wissbi::util::GetHostIP().c_str());
+}
