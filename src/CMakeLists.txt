@@ -10,18 +10,18 @@ include_directories(
     .
 )
 
-add_executable(pub pub.cpp)
-add_executable(sub sub.cpp)
-add_executable(count count.cpp)
+add_executable(wissbi-pub pub.cpp)
+add_executable(wissbi-sub sub.cpp)
+add_executable(wissbi-count count.cpp)
 
 target_link_libraries(
-    pub pthread
+    wissbi-pub pthread
 )
 
 target_link_libraries(
-    sub pthread
+    wissbi-sub pthread
 )
 
 target_link_libraries(
-    count pthread
+    wissbi-count pthread
 )
