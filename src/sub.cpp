@@ -1,6 +1,7 @@
 #include <string.h>
 #include <signal.h>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <thread>
 #include <set>
@@ -23,6 +24,11 @@ void exit_signal_handler(int signum) {
 int main(int argc, char* argv[]){
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
+
+    if(getenv("WISSBI_PID_FILE") != NULL) {
+        ofstream ofs(getenv("WISSBI_PID_FILE"));
+        ofs << getpid() << endl;
+    }
 
     int serv = socket(AF_INET, SOCK_STREAM, 0);
     sockaddr serv_addr;
