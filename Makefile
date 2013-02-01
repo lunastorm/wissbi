@@ -1,3 +1,6 @@
+INSTALL_PREFIX	?=
+DEBBUILD_DIR	:=	tmp/wissbi-0.1-$(shell date -u "+%Y%m%d")_amd64
+
 .PHONY:	test build
 
 default: build
@@ -25,3 +28,21 @@ test: tmp/gmock-1.6.0 build tmp/3rd_party/shunit2
 clean:
 	rm -rf tmp
 	rm -rf output
+
+.PHONY:	install
+install: build
+	mkdir -p $(INSTALL_PREFIX)/usr/bin
+	cp -f tmp/build/wissbi-pub $(INSTALL_PREFIX)/usr/bin
+	cp -f tmp/build/wissbi-sub $(INSTALL_PREFIX)/usr/bin
+
+.PHONY:	deb
+deb:
+	rm -rf $(DEBBUILD_DIR)
+	INSTALL_PREFIX=$(DEBBUILD_DIR) make install
+	mkdir -p $(DEBBUILD_DIR)/DEBIAN
+	cd $(DEBBUILD_DIR) ; find . -type f | sed -e '/DEBIAN\/md5sums/d' | xargs md5sum | sed -e 's/\.\///g' > DEBIAN/md5sums
+	cp -f pkg/deb/* $(DEBBUILD_DIR)/DEBIAN/
+	dpkg-deb --build $(DEBBUILD_DIR)
+	mkdir -p output/artifacts
+	mv tmp/wissbi-*.deb output/artifacts/
+
