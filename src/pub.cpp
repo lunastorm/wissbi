@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
+#include <unordered_set>
 #include "msg_filter.hpp"
 #include "sub_dir.hpp"
 #include "io_policy/line.hpp"
@@ -15,25 +16,38 @@ using namespace std;
 void exit_signal_handler(int signum) {
 }
 
+void scan_dest_loop(const string& dest) {
+    unordered_set<string> producer_set;
+
+    SubDir sub_dir(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", dest);
+    while(true) {
+        for(auto conn_str : sub_dir.GetSubList()) {
+            if(producer_set.find(conn_str) != producer_set.end()) {
+                continue;
+            }
+
+            thread([conn_str]{
+                sockaddr sock_addr;
+                util::ConnectStringToSockaddr(conn_str, reinterpret_cast<sockaddr_in*>(&sock_addr));
+                MsgFilter<io_policy::SysvMq, io_policy::TCP> producerFilter;
+                producerFilter.Connect(&sock_addr);
+                producerFilter.FilterLoop();
+            }).detach();
+            producer_set.insert(conn_str);
+        }
+    }
+}
+
 int main(int argc, char* argv[]) {
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
 
-    SubDir sub_dir(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", argv[1]);
-    for(string conn_str : sub_dir.GetSubList()) {
-        thread([conn_str]{
-            sockaddr sock_addr;
-            util::ConnectStringToSockaddr(conn_str, reinterpret_cast<sockaddr_in*>(&sock_addr));
-            MsgFilter<io_policy::SysvMq, io_policy::TCP> producerFilter;
-            producerFilter.Connect(&sock_addr);
-            producerFilter.FilterLoop();
-        }).detach();
-    }
+    thread(scan_dest_loop, argv[1]).detach();
 
     MsgFilter<io_policy::Line, io_policy::SysvMq> input_filter;
     input_filter.FilterLoop();
 
-    int wait_timeout_sec = -1;
+    int wait_timeout_sec = 1;
     char* wait_timeout_str = getenv("WISSBI_PUB_WAIT_TIMEOUT_SEC");
     if(wait_timeout_str) {
         istringstream iss(wait_timeout_str);
