@@ -3,6 +3,7 @@
 #include <sstream>
 #include <thread>
 #include <unordered_set>
+#include <atomic>
 #include "msg_filter.hpp"
 #include "sub_dir.hpp"
 #include "io_policy/line.hpp"
@@ -12,6 +13,8 @@
 
 using namespace wissbi;
 using namespace std; 
+
+atomic_uint in_process_cnt(0);
 
 void exit_signal_handler(int signum) {
 }
@@ -30,6 +33,10 @@ void scan_dest_loop(const string& dest) {
                 sockaddr sock_addr;
                 util::ConnectStringToSockaddr(conn_str, reinterpret_cast<sockaddr_in*>(&sock_addr));
                 MsgFilter<io_policy::SysvMq, io_policy::TCP> producerFilter;
+                producerFilter.set_post_filter_func([](MsgBuf& msg_buf){
+                    in_process_cnt--;
+                    return true;
+                });
                 producerFilter.Connect(&sock_addr);
                 producerFilter.FilterLoop();
             }).detach();
@@ -46,6 +53,10 @@ int main(int argc, char* argv[]) {
     thread(scan_dest_loop, argv[1]).detach();
 
     MsgFilter<io_policy::Line, io_policy::SysvMq> input_filter;
+    input_filter.set_post_filter_func([](MsgBuf& msg_buf){
+        in_process_cnt++;
+        return true;
+    });
     input_filter.FilterLoop();
 
     int wait_timeout_sec = 1;
@@ -56,7 +67,7 @@ int main(int argc, char* argv[]) {
     }
 
     auto wait_start_tp = chrono::system_clock::now();
-    while(input_filter.GetCount() > 0) {
+    while(in_process_cnt) {
         if(wait_timeout_sec <= chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - wait_start_tp).count()) {
             break;
         }

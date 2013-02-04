@@ -29,13 +29,13 @@ testSendRandomMsg()
 
 testRunPubFirst()
 {
-    echo "hello world" | env WISSBI_META_DIR=$TMP_META_DIR $BUILD_DIR/wissbi-pub foo &
+    echo "hello world" | env WISSBI_META_DIR=$TMP_META_DIR WISSBI_PUB_WAIT_TIMEOUT_SEC=3 $BUILD_DIR/wissbi-pub foo &
     PUB_PID=$!
 
-    env WISSBI_META_DIR=$TMP_META_DIR WISSBI_PUB_WAIT_TIMEOUT_SEC=5 $BUILD_DIR/wissbi-sub foo > $TMP_META_DIR/received &
+    env WISSBI_META_DIR=$TMP_META_DIR $BUILD_DIR/wissbi-sub foo > $TMP_META_DIR/received &
     SUB_PID=$!
 
-    sleep 1
+    sleep 3
 
     kill $PUB_PID
     kill $SUB_PID
