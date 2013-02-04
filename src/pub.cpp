@@ -35,6 +35,7 @@ void scan_dest_loop(const string& dest) {
             }).detach();
             producer_set.insert(conn_str);
         }
+        this_thread::sleep_for(chrono::seconds(1));
     }
 }
 
