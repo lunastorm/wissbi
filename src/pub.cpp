@@ -1,6 +1,7 @@
 #include <signal.h>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <thread>
 #include <unordered_set>
 #include <atomic>
@@ -49,6 +50,11 @@ void scan_dest_loop(const string& dest) {
 int main(int argc, char* argv[]) {
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
+
+    if(getenv("WISSBI_PID_FILE") != NULL) {
+        ofstream ofs(getenv("WISSBI_PID_FILE"));
+        ofs << getpid() << endl;
+    }
 
     thread(scan_dest_loop, argv[1]).detach();
 
