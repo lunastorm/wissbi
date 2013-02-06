@@ -104,3 +104,21 @@ TEST_F(TeeIOPolicyTest, GetLastTeeCount) {
     tee.Put(msg);
     EXPECT_EQ(1, tee.GetLastTeeCount());
 }
+
+TEST_F(TeeIOPolicyTest, GetBranchCount) {
+    shared_ptr<MockIOPolicy> out1_ptr(new MockIOPolicy());
+    shared_ptr<MockIOPolicy> out2_ptr(new MockIOPolicy());
+    shared_ptr<MockIOPolicy> out3_ptr(new MockIOPolicy());
+
+    Tee<MockIOPolicy> tee;
+    tee.AddBranch("1", out1_ptr);
+    tee.AddBranch("2", out2_ptr);
+
+    EXPECT_EQ(2, tee.GetBranchCount());
+
+    tee.RemoveBranch("1");
+    tee.RemoveBranch("2");
+
+    tee.AddBranch("3", out3_ptr);
+    EXPECT_EQ(1, tee.GetBranchCount());
+}

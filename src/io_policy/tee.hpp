@@ -41,6 +41,10 @@ class Tee {
         return branch_map_.find(branch_name) != branch_map_.end();
     }
 
+    int GetBranchCount() {
+        return branch_map_.size();
+    }
+
     int GetLastTeeCount() {
         return last_tee_count_;
     }
