@@ -53,49 +53,49 @@ TEST_F(SubEntryTest, SubDirNotExist) {
 TEST_F(SubEntryTest, CreatedQueue) {
     system((std::string("mkdir ") + meta_dir_ + "/sub/foo").c_str());
     wissbi::SubEntry sub_entry(meta_dir_, "foo", "192.168.0.1:12345");
-    EXPECT_EQ(0, system((std::string("ls ") + meta_dir_ + "/sub/foo/192.168.0.1:12345").c_str()));
+    EXPECT_EQ(0, system((std::string("ls ") + meta_dir_ + "/sub/foo/192.168.0.1:12345,foo").c_str()));
 }
 
 TEST_F(SubEntryTest, AutoCreateQueue) {
     wissbi::SubEntry sub_entry(meta_dir_, "foo", "192.168.0.1:12345");
-    EXPECT_EQ(0, system((std::string("ls ") + meta_dir_ + "/sub/foo/192.168.0.1:12345").c_str()));
+    EXPECT_EQ(0, system((std::string("ls ") + meta_dir_ + "/sub/foo/192.168.0.1:12345,foo").c_str()));
 }
 
 TEST_F(SubEntryTest, EntryExists) {
     system((std::string("mkdir ") + meta_dir_ + "/sub/foo").c_str());
-    system((std::string("touch --date 1970-01-01T00:00:00Z ") + meta_dir_ + "/sub/foo/" + "192.168.0.1:12345").c_str());
+    system((std::string("touch --date 1970-01-01T00:00:00Z ") + meta_dir_ + "/sub/foo/" + "192.168.0.1:12345,foo").c_str());
 
     wissbi::SubEntry sub_entry(meta_dir_, "foo", "192.168.0.1:12345");
     struct stat stat_buf;
-    EXPECT_EQ(0, stat((std::string(meta_dir_) + "/sub/foo/192.168.0.1:12345").c_str(), &stat_buf));
+    EXPECT_EQ(0, stat((std::string(meta_dir_) + "/sub/foo/192.168.0.1:12345,foo").c_str(), &stat_buf));
     EXPECT_GT(stat_buf.st_mtime, 0);
 }
 
 TEST_F(SubEntryTest, EntryCleanup) {
     {
         wissbi::SubEntry sub_entry(meta_dir_, "foo", "192.168.0.1:12345");
-        EXPECT_EQ(0, system((std::string("ls ") + meta_dir_ + "/sub/foo/192.168.0.1:12345").c_str()));
+        EXPECT_EQ(0, system((std::string("ls ") + meta_dir_ + "/sub/foo/192.168.0.1:12345,foo").c_str()));
     }
-    EXPECT_NE(0, system((std::string("ls ") + meta_dir_ + "/sub/foo/192.168.0.1:12345").c_str()));
+    EXPECT_NE(0, system((std::string("ls ") + meta_dir_ + "/sub/foo/192.168.0.1:12345,foo").c_str()));
 }
 
 TEST_F(SubEntryTest, EntryRenewExisting) {
     wissbi::SubEntry sub_entry(meta_dir_, "foo", "192.168.0.1:12345");
-    system((std::string("touch --date 1970-01-01T00:00:00Z ") + meta_dir_ + "/sub/foo/" + "192.168.0.1:12345").c_str());
+    system((std::string("touch --date 1970-01-01T00:00:00Z ") + meta_dir_ + "/sub/foo/" + "192.168.0.1:12345,foo").c_str());
 
     sub_entry.renew();
     struct stat stat_buf;
-    EXPECT_EQ(0, stat((std::string(meta_dir_) + "/sub/foo/192.168.0.1:12345").c_str(), &stat_buf));
+    EXPECT_EQ(0, stat((std::string(meta_dir_) + "/sub/foo/192.168.0.1:12345,foo").c_str(), &stat_buf));
     EXPECT_GT(stat_buf.st_mtime, 0);
 }
 
 TEST_F(SubEntryTest, EntryRenewRecover) {
     wissbi::SubEntry sub_entry(meta_dir_, "foo", "192.168.0.1:12345");
-    system((std::string("rm ") + meta_dir_ + "/sub/foo/" + "192.168.0.1:12345").c_str());
+    system((std::string("rm ") + meta_dir_ + "/sub/foo/" + "192.168.0.1:12345,foo").c_str());
 
     sub_entry.renew();
     struct stat stat_buf;
-    EXPECT_EQ(0, stat((std::string(meta_dir_) + "/sub/foo/192.168.0.1:12345").c_str(), &stat_buf));
+    EXPECT_EQ(0, stat((std::string(meta_dir_) + "/sub/foo/192.168.0.1:12345,foo").c_str(), &stat_buf));
     EXPECT_GT(stat_buf.st_mtime, 0);
 }
 

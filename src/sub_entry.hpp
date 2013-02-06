@@ -15,7 +15,7 @@ class SubEntry {
     }
 
     ~SubEntry() {
-        system(("rm " + meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_).c_str());
+        system(("rm " + meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," + queue_name_).c_str());
     }
 
     void renew() const {
@@ -25,8 +25,8 @@ class SubEntry {
     private:
     void renew_() const {
         system(("mkdir " + meta_dir_ + "/sub/" + queue_name_ + " 2>/dev/null").c_str());
-        if(system(("touch " + meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_).c_str()) != 0) {
-            throw std::string("Cannot create subscriber entry at ") + meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_;
+        if(system(("touch " + meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," + queue_name_).c_str()) != 0) {
+            throw std::string("Cannot create subscriber entry at ") + meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," + queue_name_;
         }
     }
 
