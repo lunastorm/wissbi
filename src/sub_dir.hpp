@@ -6,6 +6,7 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <tuple>
 
 namespace wissbi {
 
@@ -19,8 +20,8 @@ class SubDir {
     ~SubDir() {
     }
 
-    std::vector<std::string> GetSubList() {
-        std::vector<std::string> res;
+    std::vector<std::tuple<std::string, std::string>> GetSubList() {
+        std::vector<std::tuple<std::string, std::string>> res;
         DIR *dir_ptr = opendir((meta_dir_ + "/sub/" + queue_name_).c_str());
         if(dir_ptr != NULL) {
             struct dirent *ent = NULL;
@@ -28,7 +29,9 @@ class SubDir {
                 if (strcmp(".", ent->d_name) == 0 || strcmp("..", ent->d_name) == 0 || ent->d_type == DT_DIR) {
                     continue;
                 }
-                res.push_back(ent->d_name);
+                std::string entry(ent->d_name);
+                size_t sep_pos = entry.find(",");
+                res.push_back(std::make_tuple(entry.substr(0, sep_pos), entry.substr(sep_pos + 1, entry.length() - sep_pos - 1)));
             }
             closedir(dir_ptr);
         }

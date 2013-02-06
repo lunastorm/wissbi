@@ -25,7 +25,10 @@ void scan_dest_loop(const string& dest) {
 
     SubDir sub_dir(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", dest);
     while(true) {
-        for(auto conn_str : sub_dir.GetSubList()) {
+        for(auto sub_entry_tuple : sub_dir.GetSubList()) {
+            const std::string& conn_str = std::get<0>(sub_entry_tuple);
+            const std::string& dest = std::get<1>(sub_entry_tuple);
+
             if(producer_set.find(conn_str) != producer_set.end()) {
                 continue;
             }

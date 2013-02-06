@@ -1,13 +1,5 @@
-
 #include <stdlib.h>
 #include <algorithm>
-/*
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <iostream>
-#include <string>
-*/
 #include "gtest/gtest.h"
 #include "sub_dir.hpp"
 
@@ -40,30 +32,48 @@ TEST_F(SubDirTest, NoSubInQueue) {
 
 TEST_F(SubDirTest, SomeSubInQueue) {
     system((std::string("mkdir ") + meta_dir_ + "/sub/foo").c_str());
-    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.1:12345").c_str());
-    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.2:12345").c_str());
-    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.3:12345").c_str());
+    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.1:12345,foo").c_str());
+    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.2:12345,foo").c_str());
+    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.3:12345,bar").c_str());
     
     wissbi::SubDir sub_dir(meta_dir_, "foo");
     auto list = sub_dir.GetSubList();
     EXPECT_EQ(3, list.size());
-    EXPECT_NE(list.end(), std::find(list.begin(), list.end(), "192.168.0.1:12345"));
-    EXPECT_NE(list.end(), std::find(list.begin(), list.end(), "192.168.0.2:12345"));
-    EXPECT_NE(list.end(), std::find(list.begin(), list.end(), "192.168.0.3:12345"));
+    EXPECT_NE(list.end(), std::find_if(list.begin(), list.end(),
+        [](std::tuple<std::string, std::string> t){
+            return std::get<0>(t) == "192.168.0.1:12345" && std::get<1>(t) == "foo";
+    }));
+    EXPECT_NE(list.end(), std::find_if(list.begin(), list.end(),
+        [](std::tuple<std::string, std::string> t){
+            return std::get<0>(t) == "192.168.0.2:12345" && std::get<1>(t) == "foo";
+    }));
+    EXPECT_NE(list.end(), std::find_if(list.begin(), list.end(),
+        [](std::tuple<std::string, std::string> t){
+            return std::get<0>(t) == "192.168.0.3:12345" && std::get<1>(t) == "bar";
+    }));
 }
 
 TEST_F(SubDirTest, HasSubQueue) {
     system((std::string("mkdir ") + meta_dir_ + "/sub/foo").c_str());
     system((std::string("mkdir ") + meta_dir_ + "/sub/foo/bar").c_str());
-    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.1:12345").c_str());
-    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.2:12345").c_str());
-    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.3:12345").c_str());
+    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.1:12345,foo").c_str());
+    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.2:12345,foo").c_str());
+    system((std::string("touch ") + meta_dir_ + "/sub/foo/192.168.0.3:12345,bar").c_str());
     
     wissbi::SubDir sub_dir(meta_dir_, "foo");
     auto list = sub_dir.GetSubList();
     EXPECT_EQ(3, list.size());
-    EXPECT_NE(list.end(), std::find(list.begin(), list.end(), "192.168.0.1:12345"));
-    EXPECT_NE(list.end(), std::find(list.begin(), list.end(), "192.168.0.2:12345"));
-    EXPECT_NE(list.end(), std::find(list.begin(), list.end(), "192.168.0.3:12345"));
+    EXPECT_NE(list.end(), std::find_if(list.begin(), list.end(),
+        [](std::tuple<std::string, std::string> t){
+            return std::get<0>(t) == "192.168.0.1:12345" && std::get<1>(t) == "foo";
+    }));
+    EXPECT_NE(list.end(), std::find_if(list.begin(), list.end(),
+        [](std::tuple<std::string, std::string> t){
+            return std::get<0>(t) == "192.168.0.2:12345" && std::get<1>(t) == "foo";
+    }));
+    EXPECT_NE(list.end(), std::find_if(list.begin(), list.end(),
+        [](std::tuple<std::string, std::string> t){
+            return std::get<0>(t) == "192.168.0.3:12345" && std::get<1>(t) == "bar";
+    }));
 }
 
