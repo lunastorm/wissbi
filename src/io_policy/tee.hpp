@@ -34,6 +34,10 @@ class Tee {
         branch_map_.erase(branch_name);
     }
 
+    bool ExistsBranch(const std::string& branch_name) {
+        return branch_map_.find(branch_name) != branch_map_.end();
+    }
+
     private:
     std::unordered_map<std::string, std::shared_ptr<policy>> branch_map_;
 };

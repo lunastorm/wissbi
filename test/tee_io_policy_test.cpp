@@ -61,3 +61,23 @@ TEST_F(TeeIOPolicyTest, BranchRemoved) {
     tee.Put(msg);
 }
 
+TEST_F(TeeIOPolicyTest, ExistsBranch) {
+    shared_ptr<MockIOPolicy> out1_ptr(new MockIOPolicy());
+    shared_ptr<MockIOPolicy> out2_ptr(new MockIOPolicy());
+    shared_ptr<MockIOPolicy> out3_ptr(new MockIOPolicy());
+
+    Tee<MockIOPolicy> tee;
+    tee.AddBranch("1", out1_ptr);
+    tee.AddBranch("2", out2_ptr);
+
+    EXPECT_TRUE(tee.ExistsBranch("1"));
+    EXPECT_TRUE(tee.ExistsBranch("2"));
+
+    tee.RemoveBranch("1");
+    tee.RemoveBranch("2");
+    EXPECT_FALSE(tee.ExistsBranch("1"));
+    EXPECT_FALSE(tee.ExistsBranch("2"));
+
+    tee.AddBranch("3", out3_ptr);
+    EXPECT_TRUE(tee.ExistsBranch("3"));
+}
