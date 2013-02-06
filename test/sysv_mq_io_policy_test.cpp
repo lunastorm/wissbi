@@ -17,6 +17,7 @@ class SysvMqIOPolicyTest : public ::testing::Test {
 
 TEST_F(SysvMqIOPolicyTest, OneConstructor) {
     SysvMq mq;
+    mq.mq_init("test");
     EXPECT_GE(mq.mqid(), 0);
 
     ostringstream oss;
@@ -33,6 +34,7 @@ TEST_F(SysvMqIOPolicyTest, OneDestructor) {
     string key_file;
     {
         SysvMq mq;
+        mq.mq_init("test");
         EXPECT_GE(mq.mqid(), 0);
         mqid = mq.mqid();
         key_file = mq.key_file();
@@ -51,6 +53,7 @@ TEST_F(SysvMqIOPolicyTest, OneDestructor) {
 
 TEST_F(SysvMqIOPolicyTest, PutMsg) {
     SysvMq mq;
+    mq.mq_init("test");
     EXPECT_GE(mq.mqid(), 0);
 
     MsgBuf msg_buf;
@@ -66,6 +69,7 @@ TEST_F(SysvMqIOPolicyTest, PutMsg) {
 
 TEST_F(SysvMqIOPolicyTest, GetMsg) {
     SysvMq mq;
+    mq.mq_init("test");
     EXPECT_GE(mq.mqid(), 0);
 
     MsgBuf msg_buf;
@@ -86,6 +90,7 @@ TEST_F(SysvMqIOPolicyTest, MultiInstanceConstructDestruct) {
     string key_file;
     {
         SysvMq mq1;
+        mq1.mq_init("test");
         EXPECT_GE(mq1.mqid(), 0);
         mqid1 = mq1.mqid();
         key_file = mq1.key_file();
@@ -94,6 +99,7 @@ TEST_F(SysvMqIOPolicyTest, MultiInstanceConstructDestruct) {
         EXPECT_EQ(0, system(oss.str().c_str()));
 
         SysvMq mq2;
+        mq2.mq_init("test");
         EXPECT_GE(mq2.mqid(), 0);
         mqid2 = mq2.mqid();
         EXPECT_EQ(mq1.mqid(), mq2.mqid());
@@ -112,8 +118,10 @@ TEST_F(SysvMqIOPolicyTest, MultiInstanceConstructDestruct) {
 
 TEST_F(SysvMqIOPolicyTest, MultiInstancePutGet) {
     SysvMq mq1;
+    mq1.mq_init("test");
     EXPECT_GE(mq1.mqid(), 0);
     SysvMq mq2;
+    mq2.mq_init("test");
     EXPECT_GE(mq2.mqid(), 0);
 
     MsgBuf msg_buf;
@@ -129,6 +137,7 @@ TEST_F(SysvMqIOPolicyTest, MultiInstancePutGet) {
 
 TEST_F(SysvMqIOPolicyTest, GetCount) {
     SysvMq mq;
+    mq.mq_init("test");
     EXPECT_GE(mq.mqid(), 0);
     EXPECT_EQ(0, mq.GetCount());
 
@@ -156,6 +165,7 @@ TEST_F(SysvMqIOPolicyTest, NoCleanup) {
     string key_file;
 
     SysvMq* mq1_ptr = new SysvMq();
+    mq1_ptr->mq_init("test");
     EXPECT_GE(mq1_ptr->mqid(), 0);
     mqid1 = mq1_ptr->mqid();
     key_file = mq1_ptr->key_file();
@@ -164,6 +174,7 @@ TEST_F(SysvMqIOPolicyTest, NoCleanup) {
     EXPECT_EQ(0, system(oss.str().c_str()));
 
     SysvMq mq2;
+    mq2.mq_init("test");
     EXPECT_GE(mq2.mqid(), 0);
     mqid2 = mq2.mqid();
     ostringstream oss2;
@@ -177,4 +188,38 @@ TEST_F(SysvMqIOPolicyTest, NoCleanup) {
     ostringstream oss3;
     oss3 << "ls " << key_file;
     EXPECT_EQ(0, system(oss3.str().c_str()));
+}
+
+TEST_F(SysvMqIOPolicyTest, CreateDifferentName) {
+    SysvMq mq1;
+    mq1.mq_init("test");
+    EXPECT_GE(mq1.mqid(), 0);
+    SysvMq mq2;
+    mq2.mq_init("test");
+    EXPECT_GE(mq2.mqid(), 0);
+
+    SysvMq mq3;
+    mq3.mq_init("test2");
+    EXPECT_GE(mq3.mqid(), 0);
+    SysvMq mq4;
+    mq4.mq_init("test2");
+    EXPECT_GE(mq4.mqid(), 0);
+
+    EXPECT_EQ(mq1.mqid(), mq2.mqid());
+    EXPECT_EQ(mq3.mqid(), mq4.mqid());
+    EXPECT_NE(mq1.mqid(), mq3.mqid());
+
+    MsgBuf msg_buf;
+    string msg("Hello World");
+    strncpy(msg_buf.buf, msg.c_str(), msg.length());
+    msg_buf.len = msg.length();
+
+    EXPECT_TRUE(mq1.Put(msg_buf));
+    MsgBuf new_buf;
+    EXPECT_TRUE(mq2.Get(&new_buf));
+    EXPECT_STREQ(msg.c_str(), string(new_buf.buf, new_buf.len).c_str());
+
+    EXPECT_TRUE(mq3.Put(msg_buf));
+    EXPECT_TRUE(mq4.Get(&new_buf));
+    EXPECT_STREQ(msg.c_str(), string(new_buf.buf, new_buf.len).c_str());
 }

@@ -15,10 +15,21 @@ namespace io_policy {
 
 class SysvMq {
     public:
-    SysvMq() {
-        cleanup_ = true;
+    SysvMq() : cleanup_(true) {
+    }
+
+    ~SysvMq() {
+        if(!cleanup_ || key_file_.length() == 0) {
+            return;
+        }
+        struct msqid_ds ds;
+        msgctl(mqid_, IPC_RMID, &ds);
+        unlink(key_file_.c_str());
+    }
+
+    void mq_init(const std::string& name) {
         std::ostringstream oss;
-        oss << "/tmp/wissbi.sysvmq." << getpid();
+        oss << "/tmp/wissbi.sysvmq." << getpid() << "." << name;
         key_file_ = oss.str();
         int res = creat(key_file_.c_str(), O_RDONLY | S_IRUSR | S_IWUSR);
         close(res);
@@ -27,16 +38,6 @@ class SysvMq {
         if(mqid_ < 0) {
             throw "cannot acquire mq: " + std::string(strerror(errno));
         }
-    }
-
-    ~SysvMq() {
-        if(!cleanup_) {
-            return;
-        }
-        struct msqid_ds ds;
-        msgctl(mqid_, IPC_RMID, &ds);
-        assert(0 != key_file_.length());
-        unlink(key_file_.c_str());
     }
 
     bool Put(const MsgBuf &msg) {

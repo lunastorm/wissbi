@@ -51,6 +51,7 @@ int main(int argc, char* argv[]){
     SubEntry sub_entry(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", argv[1], tmp.str());
 
     MsgFilter<io_policy::SysvMq, io_policy::Line> output_writer;
+    output_writer.mq_init("");
     thread* output_th = new thread([&output_writer](){
         output_writer.FilterLoop();
     });
@@ -72,6 +73,7 @@ int main(int argc, char* argv[]){
             setsockopt(res, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)); 
             thread([res]{
                 MsgFilter<io_policy::TCP, io_policy::SysvMq> filter;
+                filter.mq_init("");
                 filter.set_cleanup(false);
                 filter.AttachConnectedSock(res);
                 filter.FilterLoop();
