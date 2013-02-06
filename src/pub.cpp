@@ -10,6 +10,7 @@
 #include "io_policy/line.hpp"
 #include "io_policy/sysv_mq.hpp"
 #include "io_policy/tcp.hpp"
+#include "io_policy/tee.hpp"
 #include "util.hpp"
 
 using namespace wissbi;
@@ -20,7 +21,9 @@ atomic_uint in_process_cnt(0);
 void exit_signal_handler(int signum) {
 }
 
-void scan_dest_loop(const string& dest) {
+typedef MsgFilter<io_policy::Line, io_policy::Tee<io_policy::SysvMq>> InputFilter;
+
+void scan_dest_loop(const string& dest, InputFilter& input_filter) {
     unordered_set<string> producer_set;
 
     SubDir sub_dir(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", dest);
@@ -32,12 +35,17 @@ void scan_dest_loop(const string& dest) {
             if(producer_set.find(conn_str) != producer_set.end()) {
                 continue;
             }
+            if(!input_filter.ExistsBranch(dest)) {
+                shared_ptr<io_policy::SysvMq> mq_ptr(new io_policy::SysvMq());
+                mq_ptr->mq_init(dest);
+                input_filter.AddBranch(dest, mq_ptr);
+            }
 
-            thread([conn_str]{
+            thread([conn_str, dest]{
                 sockaddr sock_addr;
                 util::ConnectStringToSockaddr(conn_str, reinterpret_cast<sockaddr_in*>(&sock_addr));
                 MsgFilter<io_policy::SysvMq, io_policy::TCP> producerFilter;
-                producerFilter.mq_init("");
+                producerFilter.mq_init(dest);
                 producerFilter.set_post_filter_func([](MsgBuf& msg_buf){
                     in_process_cnt--;
                     return true;
@@ -60,14 +68,9 @@ int main(int argc, char* argv[]) {
         ofs << getpid() << endl;
     }
 
-    thread(scan_dest_loop, argv[1]).detach();
+    InputFilter input_filter;
+    thread(scan_dest_loop, argv[1], std::ref(input_filter)).detach();
 
-    MsgFilter<io_policy::Line, io_policy::SysvMq> input_filter;
-    input_filter.mq_init("");
-    input_filter.set_post_filter_func([](MsgBuf& msg_buf){
-        in_process_cnt++;
-        return true;
-    });
     input_filter.FilterLoop();
 
     int wait_timeout_sec = 1;

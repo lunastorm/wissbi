@@ -21,6 +21,7 @@ class Tee {
         for(auto kv : branch_map_) {
             kv.second->Put(msg);
         }
+        return true;
     }
 
     bool Get(MsgBuf *msg_ptr) {
