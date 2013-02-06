@@ -81,3 +81,26 @@ TEST_F(TeeIOPolicyTest, ExistsBranch) {
     tee.AddBranch("3", out3_ptr);
     EXPECT_TRUE(tee.ExistsBranch("3"));
 }
+
+TEST_F(TeeIOPolicyTest, GetLastTeeCount) {
+    shared_ptr<MockIOPolicy> out1_ptr(new MockIOPolicy());
+    shared_ptr<MockIOPolicy> out2_ptr(new MockIOPolicy());
+    shared_ptr<MockIOPolicy> out3_ptr(new MockIOPolicy());
+
+    Tee<MockIOPolicy> tee;
+    tee.AddBranch("1", out1_ptr);
+    tee.AddBranch("2", out2_ptr);
+
+    EXPECT_CALL(*out1_ptr, Put(_)).WillOnce(Return(true));
+    EXPECT_CALL(*out2_ptr, Put(_)).WillOnce(Return(true));
+    EXPECT_CALL(*out3_ptr, Put(_)).WillOnce(Return(true));
+    MsgBuf msg;
+    tee.Put(msg);
+    EXPECT_EQ(2, tee.GetLastTeeCount());
+
+    tee.RemoveBranch("1");
+    tee.RemoveBranch("2");
+    tee.AddBranch("3", out3_ptr);
+    tee.Put(msg);
+    EXPECT_EQ(1, tee.GetLastTeeCount());
+}

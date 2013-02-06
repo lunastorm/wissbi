@@ -18,8 +18,10 @@ class Tee {
     }
 
     bool Put(const MsgBuf &msg) {
+        last_tee_count_ = 0;
         for(auto kv : branch_map_) {
             kv.second->Put(msg);
+            ++last_tee_count_;
         }
         return true;
     }
@@ -39,8 +41,13 @@ class Tee {
         return branch_map_.find(branch_name) != branch_map_.end();
     }
 
+    int GetLastTeeCount() {
+        return last_tee_count_;
+    }
+
     private:
     std::unordered_map<std::string, std::shared_ptr<policy>> branch_map_;
+    int last_tee_count_;
 };
 
 }
