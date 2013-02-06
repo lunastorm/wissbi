@@ -35,6 +35,7 @@ install: build
 	mkdir -p $(INSTALL_PREFIX)/etc/bash_completion.d
 	cp -f tmp/build/wissbi-pub $(INSTALL_PREFIX)/usr/bin
 	cp -f tmp/build/wissbi-sub $(INSTALL_PREFIX)/usr/bin
+	cp -f tmp/build/wissbi-count $(INSTALL_PREFIX)/usr/bin
 	cp -f scripts/wissbi-bash_completion.sh $(INSTALL_PREFIX)/etc/bash_completion.d
 
 .PHONY:	deb
