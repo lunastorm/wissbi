@@ -59,6 +59,16 @@ void scan_dest_loop(const string& dest, InputFilter& input_filter) {
     }
 }
 
+void sleep_while(std::function<bool()> cond, int second) {
+    auto wait_start_tp = chrono::system_clock::now();
+    while(cond()) {
+        if(second <= chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - wait_start_tp).count()) {
+            break;
+        }
+        this_thread::sleep_for(chrono::milliseconds(50));
+    }
+}
+
 int main(int argc, char* argv[]) {
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
@@ -68,11 +78,6 @@ int main(int argc, char* argv[]) {
         ofs << getpid() << endl;
     }
 
-    InputFilter input_filter;
-    thread(scan_dest_loop, argv[1], std::ref(input_filter)).detach();
-
-    input_filter.FilterLoop();
-
     int wait_timeout_sec = 1;
     char* wait_timeout_str = getenv("WISSBI_PUB_WAIT_TIMEOUT_SEC");
     if(wait_timeout_str) {
@@ -80,13 +85,21 @@ int main(int argc, char* argv[]) {
         iss >> wait_timeout_sec;
     }
 
-    auto wait_start_tp = chrono::system_clock::now();
-    while(in_process_cnt) {
-        if(wait_timeout_sec <= chrono::duration_cast<chrono::seconds>(chrono::system_clock::now() - wait_start_tp).count()) {
-            break;
-        }
-        this_thread::sleep_for(chrono::milliseconds(100));
-    }
+    InputFilter input_filter;
+    thread(scan_dest_loop, argv[1], std::ref(input_filter)).detach();
+
+    input_filter.set_pre_filter_func([&input_filter, wait_timeout_sec](MsgBuf& msgbuf){
+        sleep_while([&input_filter]{ return input_filter.GetBranchCount() == 0; }, wait_timeout_sec);
+        return true;
+    });
+    input_filter.set_post_filter_func([&input_filter](MsgBuf& msgbuf){
+        in_process_cnt += input_filter.GetLastTeeCount();
+        return true;
+    });
+
+    input_filter.FilterLoop();
+
+    sleep_while([&in_process_cnt]{ return in_process_cnt > 0; }, wait_timeout_sec);
 
 	return 0;
 }
