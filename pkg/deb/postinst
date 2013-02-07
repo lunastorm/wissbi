@@ -1,3 +1,4 @@
 #!/bin/bash
 
+mkdir -p /var/lib/wissbi
 exit 0
