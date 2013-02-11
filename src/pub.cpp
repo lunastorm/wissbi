@@ -45,12 +45,18 @@ void scan_dest_loop(const string& dest, InputFilter& input_filter) {
                 sockaddr sock_addr;
                 util::ConnectStringToSockaddr(conn_str, reinterpret_cast<sockaddr_in*>(&sock_addr));
                 MsgFilter<io_policy::SysvMq, io_policy::TCP> producerFilter;
-                producerFilter.mq_init(dest);
+                try {
+                    producerFilter.Connect(&sock_addr);
+                }
+                catch (...) {
+                    cerr << "error connecting" << endl;
+                    return;
+                }
                 producerFilter.set_post_filter_func([](MsgBuf& msg_buf){
                     in_process_cnt--;
                     return true;
                 });
-                producerFilter.Connect(&sock_addr);
+                producerFilter.mq_init(dest);
                 producerFilter.FilterLoop();
             }).detach();
             producer_set.insert(conn_str);
