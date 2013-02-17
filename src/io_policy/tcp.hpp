@@ -4,6 +4,7 @@
 #include "msg_buf.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 
 namespace wissbi {
 namespace io_policy {

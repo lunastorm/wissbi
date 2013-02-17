@@ -1,4 +1,5 @@
 #include <signal.h>
+#include <unistd.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -52,7 +53,7 @@ void scan_dest_loop(const string& dest, InputFilter& input_filter) {
                     cerr << "error connecting" << endl;
                     return;
                 }
-                producerFilter.set_post_filter_func([](MsgBuf& msg_buf){
+                producerFilter.set_post_filter_func([](MsgBuf& msg_buf) -> bool{
                     in_process_cnt--;
                     return true;
                 });
@@ -105,7 +106,7 @@ int main(int argc, char* argv[]) {
 
     input_filter.FilterLoop();
 
-    sleep_while([&in_process_cnt]{ return in_process_cnt > 0; }, wait_timeout_sec);
+    sleep_while([]{ return in_process_cnt > 0; }, wait_timeout_sec);
 
 	return 0;
 }

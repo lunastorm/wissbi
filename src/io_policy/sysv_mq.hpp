@@ -2,6 +2,7 @@
 #define WISSBI_IO_POLICY_SYSVMQ_HPP_
 
 #include "msg_buf.hpp"
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
