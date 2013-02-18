@@ -7,7 +7,7 @@ set -o errexit
 
 while true
 do
-    for ENTRY in `find $WISSBI_META_DIR/sub`
+    for ENTRY in `find $WISSBI_META_DIR/sub | grep ":"`
     do
         ATIME=`stat -c "%X" $ENTRY || true`
         if [ "$((`date +%s` - ATIME))" -gt 60 ]
