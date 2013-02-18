@@ -12,5 +12,19 @@ fi
 
 for test_script in `ls`
 do
-    env PROJECT_ROOT=$PROJECT_ROOT BUILD_DIR=$BUILD_DIR ./$test_script > ../test_integration_$test_script.xml
+    env PROJECT_ROOT=$PROJECT_ROOT BUILD_DIR=$BUILD_DIR ./$test_script > ../test_integration_$test_script.xml &
 done
+
+RETVAL=0
+
+for job in `jobs -p`
+do
+    wait $job
+    if [ $? -ne 0 ]
+    then
+        RETVAL=$((RETVAL+1))
+    fi
+    echo wait result $? >> /tmp/kkfuck
+done
+
+exit $RETVAL
