@@ -2,7 +2,6 @@
 
 set -o nounset
 set -o errexit
-echo $WISSBI_META_DIR
 
 : ${WISSBI_META_DIR:="/var/lib/wissbi"}
 
