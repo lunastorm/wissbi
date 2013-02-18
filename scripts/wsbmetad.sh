@@ -13,6 +13,7 @@ do
         if [ "$((`date +%s` - ATIME))" -gt 60 ]
         then
             rm $ENTRY
+            logger -s -i -t wsbmetad "Removed dead entry: $ENTRY"
         fi
     done
     sleep 1
