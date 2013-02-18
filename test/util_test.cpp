@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 #include "util.hpp"
+#include <stdlib.h>
+#include <fstream>
 
 TEST(UtilTest, TestConnectStringToSockaddr) {
     sockaddr_in in_addr;
@@ -10,10 +12,14 @@ TEST(UtilTest, TestConnectStringToSockaddr) {
 }
 
 TEST(UtilTest, TestGetHostIP) {
-    FILE *f = popen("hostname -i", "r");
-    char buf[20];
-    size_t n = fread(buf, 1, 20, f);
-    buf[n-1] = '\0';
-    pclose(f);
-    EXPECT_STREQ(buf, wissbi::util::GetHostIP().c_str());
+    char tmpstr[20] = "/tmp/temp.XXXXXX";
+    char *tmpfile = mktemp(tmpstr);
+    assert(tmpfile != NULL);
+    system(("ping -c 1 `hostname` | grep PING | sed -e 's/.*(\\([0-9]*\\.[0-9]*\\.[0-9]*\\.[0-9]*\\)).*/\\1/' > " + std::string(tmpfile)).c_str());
+
+    std::ifstream ifs(tmpfile);
+    std::string ip;
+    std::getline(ifs, ip);
+    unlink(tmpfile);
+    EXPECT_STREQ(ip.c_str(), wissbi::util::GetHostIP().c_str());
 }
