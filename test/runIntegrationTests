@@ -4,11 +4,13 @@ cd integration
 if [ -d ../../build ]
 then
     BUILD_DIR=../../build
+    PROJECT_ROOT=`(cd ../../../ ; pwd)`
 else
     BUILD_DIR=../../tmp/build
+    PROJECT_ROOT=`(cd ../../ ; pwd)`
 fi
 
 for test_script in `ls`
 do
-    env BUILD_DIR=$BUILD_DIR ./$test_script > ../test_integration_$test_script.xml
+    env PROJECT_ROOT=$PROJECT_ROOT BUILD_DIR=$BUILD_DIR ./$test_script > ../test_integration_$test_script.xml
 done
