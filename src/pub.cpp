@@ -52,10 +52,17 @@ void scan_dest_loop(const string& dest, InputFilter& input_filter) {
                     producer_set.erase(conn_str);
                     return;
                 }
-                producerFilter.set_post_filter_func([](bool filter_result, MsgBuf& msg_buf){
-                    in_process_cnt--;
-                    return true;
+                producerFilter.set_post_filter_func([&producerFilter](bool filter_result, MsgBuf& msg_buf){
+                    if(filter_result == true) {
+                        in_process_cnt--;
+                        return true;
+                    }
+                    else {
+                        static_cast<InputWrapper<io_policy::SysvMq>&>(producerFilter).Put(msg_buf);
+                        return false;
+                    }
                 });
+                producerFilter.set_cleanup(false);
                 producerFilter.mq_init(dest);
                 producerFilter.FilterLoop();
                 producer_set.erase(conn_str);
@@ -101,8 +108,10 @@ int main(int argc, char* argv[]) {
         return true;
     });
     input_filter.set_post_filter_func([&input_filter](bool filter_result, MsgBuf& msgbuf){
-        in_process_cnt += input_filter.GetLastTeeCount();
-        return true;
+        if(filter_result == true) {
+            in_process_cnt += input_filter.GetLastTeeCount();
+        }
+        return filter_result;
     });
 
     input_filter.FilterLoop();
