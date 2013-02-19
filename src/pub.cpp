@@ -52,7 +52,7 @@ void scan_dest_loop(const string& dest, InputFilter& input_filter) {
                     producer_set.erase(conn_str);
                     return;
                 }
-                producerFilter.set_post_filter_func([](MsgBuf& msg_buf){
+                producerFilter.set_post_filter_func([](bool filter_result, MsgBuf& msg_buf){
                     in_process_cnt--;
                     return true;
                 });
@@ -96,11 +96,11 @@ int main(int argc, char* argv[]) {
     InputFilter input_filter;
     thread(scan_dest_loop, argv[1], std::ref(input_filter)).detach();
 
-    input_filter.set_pre_filter_func([&input_filter, wait_timeout_sec](MsgBuf& msgbuf){
+    input_filter.set_pre_filter_func([&input_filter, wait_timeout_sec] {
         sleep_while([&input_filter]{ return input_filter.GetBranchCount() == 0; }, wait_timeout_sec);
         return true;
     });
-    input_filter.set_post_filter_func([&input_filter](MsgBuf& msgbuf){
+    input_filter.set_post_filter_func([&input_filter](bool filter_result, MsgBuf& msgbuf){
         in_process_cnt += input_filter.GetLastTeeCount();
         return true;
     });
