@@ -15,7 +15,8 @@ int main(int argc, char* argv[]) {
         count++;
         time_t current_ts = time(NULL);
         if(current_ts > last_update_ts) {
-            cerr << count << " messages / sec" << endl;
+            cerr.precision(3);
+            cerr << fixed << (float)count / (current_ts - last_update_ts) << " messages / sec" << endl;
             last_update_ts = current_ts;
             count = 0;
         }
