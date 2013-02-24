@@ -34,11 +34,12 @@ int main(int argc, char* argv[]) {
     int max_size = 50;
 
     MsgFilter<io_policy::Line, io_policy::Line> recorder;
-    recorder.set_filter_func([&mq, max_size](MsgBuf& msg){
-        if(mq.size() == max_size) {
-            mq.pop_front();
+    deque<string> *mq_ptr = &mq;
+    recorder.set_filter_func([mq_ptr, max_size](MsgBuf& msg){
+        if(mq_ptr->size() == max_size) {
+            mq_ptr->pop_front();
         }
-        mq.push_back(string(msg.buf, msg.len));
+        mq_ptr->push_back(string(msg.buf, msg.len));
         return true;
     });
     recorder.FilterLoop();
