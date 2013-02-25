@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <algorithm>
 
 namespace wissbi {
 
@@ -31,7 +32,9 @@ class SubDir {
                 }
                 std::string entry(ent->d_name);
                 size_t sep_pos = entry.find(",");
-                res.push_back(std::make_tuple(entry.substr(0, sep_pos), entry.substr(sep_pos + 1, entry.length() - sep_pos - 1)));
+                std::string queue_name_unescaped(entry.substr(sep_pos + 1, entry.length() - sep_pos - 1));
+                std::replace(queue_name_unescaped.begin(), queue_name_unescaped.end(), '#', '/');
+                res.push_back(std::make_tuple(entry.substr(0, sep_pos), queue_name_unescaped));
             }
             closedir(dir_ptr);
         }

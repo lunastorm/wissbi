@@ -2,6 +2,7 @@
 #define WISSBI_SUB_ENTRY_HPP_
 
 #include <stdlib.h>
+#include <algorithm>
 #include <string>
 
 namespace wissbi {
@@ -11,11 +12,14 @@ class SubEntry {
     SubEntry(const std::string& meta_dir, const std::string& queue_name, const std::string& addr_str) :
         meta_dir_(meta_dir), queue_name_(queue_name), addr_str_(addr_str)
     {
+        std::string queue_name_escaped(queue_name_);
+        std::replace(queue_name_escaped.begin(), queue_name_escaped.end(), '/', '#');
+        node_name_ = meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," + queue_name_escaped;
         renew_();
     }
 
     ~SubEntry() {
-        system(("rm " + meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," + queue_name_).c_str());
+        system(("rm " + node_name_).c_str());
     }
 
     void renew() const {
@@ -23,15 +27,17 @@ class SubEntry {
     }
 
     private:
+
     void renew_() const {
         system(("mkdir " + meta_dir_ + "/sub/" + queue_name_ + " 2>/dev/null").c_str());
-        if(system(("touch " + meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," + queue_name_).c_str()) != 0) {
-            throw std::string("Cannot create subscriber entry at ") + meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," + queue_name_;
+        if(system(("touch " + node_name_).c_str()) != 0) {
+            throw std::string("Cannot create subscriber entry at ") + node_name_;
         }
     }
 
     std::string meta_dir_;
     std::string queue_name_;
+    std::string node_name_;
     std::string addr_str_;
 };
 
