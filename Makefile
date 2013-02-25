@@ -41,6 +41,7 @@ install: build
 	cp -f scripts/wissbi-bash_completion.sh $(INSTALL_PREFIX)/etc/bash_completion.d
 	cp -f scripts/wsbmetad.sh $(INSTALL_PREFIX)/usr/bin
 	cp -f scripts/wsbmetad $(INSTALL_PREFIX)/etc/init.d
+	cp -f scripts/wissbi_filter_template.sh $(INSTALL_PREFIX)/usr/bin
 
 .PHONY:	deb
 deb:
