@@ -86,7 +86,7 @@ TEST_F(MsgFilterTest, FilterFuncTrue) {
 TEST_F(MsgFilterTest, PreFilterTrue) {
     bool called = false;
     MsgFilter<MockInputPolicy, MockOutputPolicy> filter;
-    filter.set_pre_filter_func([&called](MsgBuf& msg){
+    filter.set_pre_filter_func([&called](){
         called = true;
         return true;
     });
@@ -101,7 +101,7 @@ TEST_F(MsgFilterTest, PreFilterTrue) {
 TEST_F(MsgFilterTest, PreFilterFalse) {
     bool called = false;
     MsgFilter<MockInputPolicy, MockOutputPolicy> filter;
-    filter.set_pre_filter_func([&called](MsgBuf& msg){
+    filter.set_pre_filter_func([&called](){
         called = true;
         return false;
     });
@@ -114,7 +114,7 @@ TEST_F(MsgFilterTest, PreFilterFalse) {
 TEST_F(MsgFilterTest, PostFilterTrue) {
     bool called = false;
     MsgFilter<MockInputPolicy, MockOutputPolicy> filter;
-    filter.set_post_filter_func([&called](MsgBuf& msg){
+    filter.set_post_filter_func([&called](bool filter_result, MsgBuf& msg){
         called = true;
         return true;
     });
@@ -129,7 +129,7 @@ TEST_F(MsgFilterTest, PostFilterTrue) {
 TEST_F(MsgFilterTest, PostFilterFalse) {
     bool called = false;
     MsgFilter<MockInputPolicy, MockOutputPolicy> filter;
-    filter.set_post_filter_func([&called](MsgBuf& msg){
+    filter.set_post_filter_func([&called](bool filter_result, MsgBuf& msg){
         called = true;
         return false;
     });
@@ -138,5 +138,23 @@ TEST_F(MsgFilterTest, PostFilterFalse) {
     EXPECT_CALL(static_cast<MockInputPolicy&>(filter), Get(_)).WillOnce(Return(true));
     EXPECT_CALL(static_cast<MockOutputPolicy&>(filter), Put(_)).WillOnce(Return(true));
     EXPECT_FALSE(filter.Filter());
+    EXPECT_TRUE(called);
+}
+
+TEST_F(MsgFilterTest, PostFilterGetFalseReturnTrue) {
+    bool called = false;
+    MsgFilter<MockInputPolicy, MockOutputPolicy> filter;
+    filter.set_post_filter_func([&called](bool filter_result, MsgBuf& msg){
+        called = true;
+        if(!filter_result) {
+            return true;
+        }
+        return false;
+    });
+
+    MsgBuf *buf_ptr;
+    EXPECT_CALL(static_cast<MockInputPolicy&>(filter), Get(_)).WillOnce(Return(true));
+    EXPECT_CALL(static_cast<MockOutputPolicy&>(filter), Put(_)).WillOnce(Return(false));
+    EXPECT_TRUE(filter.Filter());
     EXPECT_TRUE(called);
 }

@@ -13,6 +13,7 @@ include_directories(
 add_executable(wissbi-pub pub.cpp)
 add_executable(wissbi-sub sub.cpp)
 add_executable(wissbi-count count.cpp)
+add_executable(wissbi-record record.cpp)
 
 target_link_libraries(
     wissbi-pub pthread
@@ -24,4 +25,8 @@ target_link_libraries(
 
 target_link_libraries(
     wissbi-count pthread
+)
+
+target_link_libraries(
+    wissbi-record pthread
 )

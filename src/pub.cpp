@@ -31,7 +31,6 @@ void scan_dest_loop(const string& dest, InputFilter& input_filter) {
         for(auto sub_entry_tuple : sub_dir.GetSubList()) {
             const std::string& conn_str = std::get<0>(sub_entry_tuple);
             const std::string& dest = std::get<1>(sub_entry_tuple);
-
             if(producer_set.find(conn_str) != producer_set.end()) {
                 continue;
             }
@@ -41,7 +40,7 @@ void scan_dest_loop(const string& dest, InputFilter& input_filter) {
                 input_filter.AddBranch(dest, mq_ptr);
             }
 
-            thread([conn_str, dest]{
+            thread([conn_str, dest, &producer_set]{
                 sockaddr sock_addr;
                 util::ConnectStringToSockaddr(conn_str, reinterpret_cast<sockaddr_in*>(&sock_addr));
                 MsgFilter<io_policy::SysvMq, io_policy::TCP> producerFilter;
@@ -50,14 +49,23 @@ void scan_dest_loop(const string& dest, InputFilter& input_filter) {
                 }
                 catch (...) {
                     cerr << "error connecting" << endl;
+                    producer_set.erase(conn_str);
                     return;
                 }
-                producerFilter.set_post_filter_func([](MsgBuf& msg_buf){
-                    in_process_cnt--;
-                    return true;
+                producerFilter.set_post_filter_func([&producerFilter](bool filter_result, MsgBuf& msg_buf){
+                    if(filter_result == true) {
+                        in_process_cnt--;
+                        return true;
+                    }
+                    else {
+                        static_cast<InputWrapper<io_policy::SysvMq>&>(producerFilter).Put(msg_buf);
+                        return false;
+                    }
                 });
+                producerFilter.set_cleanup(false);
                 producerFilter.mq_init(dest);
                 producerFilter.FilterLoop();
+                producer_set.erase(conn_str);
             }).detach();
             producer_set.insert(conn_str);
         }
@@ -78,6 +86,7 @@ void sleep_while(std::function<bool()> cond, int second) {
 int main(int argc, char* argv[]) {
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
+    signal(SIGPIPE, exit_signal_handler);
 
     if(getenv("WISSBI_PID_FILE") != NULL) {
         ofstream ofs(getenv("WISSBI_PID_FILE"));
@@ -94,13 +103,15 @@ int main(int argc, char* argv[]) {
     InputFilter input_filter;
     thread(scan_dest_loop, argv[1], std::ref(input_filter)).detach();
 
-    input_filter.set_pre_filter_func([&input_filter, wait_timeout_sec](MsgBuf& msgbuf){
+    input_filter.set_pre_filter_func([&input_filter, wait_timeout_sec] {
         sleep_while([&input_filter]{ return input_filter.GetBranchCount() == 0; }, wait_timeout_sec);
         return true;
     });
-    input_filter.set_post_filter_func([&input_filter](MsgBuf& msgbuf){
-        in_process_cnt += input_filter.GetLastTeeCount();
-        return true;
+    input_filter.set_post_filter_func([&input_filter](bool filter_result, MsgBuf& msgbuf){
+        if(filter_result == true) {
+            in_process_cnt += input_filter.GetLastTeeCount();
+        }
+        return filter_result;
     });
 
     input_filter.FilterLoop();
