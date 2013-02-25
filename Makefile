@@ -32,6 +32,7 @@ clean:
 .PHONY:	install
 install: build
 	mkdir -p $(INSTALL_PREFIX)/usr/bin
+	mkdir -p $(INSTALL_PREFIX)/etc/init.d
 	mkdir -p $(INSTALL_PREFIX)/etc/bash_completion.d
 	cp -f tmp/build/wissbi-pub $(INSTALL_PREFIX)/usr/bin
 	cp -f tmp/build/wissbi-sub $(INSTALL_PREFIX)/usr/bin
@@ -39,6 +40,7 @@ install: build
 	cp -f tmp/build/wissbi-record $(INSTALL_PREFIX)/usr/bin
 	cp -f scripts/wissbi-bash_completion.sh $(INSTALL_PREFIX)/etc/bash_completion.d
 	cp -f scripts/wsbmetad.sh $(INSTALL_PREFIX)/usr/bin
+	cp -f scripts/wsbmetad $(INSTALL_PREFIX)/etc/init.d
 
 .PHONY:	deb
 deb:
