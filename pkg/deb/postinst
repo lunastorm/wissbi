@@ -1,4 +1,6 @@
 #!/bin/bash
 
 mkdir -p /var/lib/wissbi
+mkdir -p /var/lib/wissbi-backup
+mkdir -p /var/run/wissbi
 exit 0
