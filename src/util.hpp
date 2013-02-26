@@ -41,6 +41,7 @@ static std::string GetHostIP() {
 static std::string EscapeSubFolderPath(const std::string& unescaped) {
     std::string res(unescaped);
     std::replace(res.begin(), res.end(), '/', '#');
+    res.erase(std::remove(res.end() - 1, res.end(), '#'), res.end());
     return res;
 }
 
