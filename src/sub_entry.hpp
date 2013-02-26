@@ -1,6 +1,7 @@
 #ifndef WISSBI_SUB_ENTRY_HPP_
 #define WISSBI_SUB_ENTRY_HPP_
 
+#include "util.hpp"
 #include <stdlib.h>
 #include <algorithm>
 #include <string>
@@ -12,9 +13,8 @@ class SubEntry {
     SubEntry(const std::string& meta_dir, const std::string& queue_name, const std::string& addr_str) :
         meta_dir_(meta_dir), queue_name_(queue_name), addr_str_(addr_str)
     {
-        std::string queue_name_escaped(queue_name_);
-        std::replace(queue_name_escaped.begin(), queue_name_escaped.end(), '/', '#');
-        node_name_ = meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," + queue_name_escaped;
+        node_name_ = meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," +
+                     wissbi::util::EscapeSubFolderPath(queue_name_);
         renew_();
     }
 
