@@ -2,10 +2,19 @@
 
 testForceKillSub()
 {
-    env WISSBI_META_DIR=$TMP_META_DIR $BUILD_DIR/wissbi-sub foo &
-    SUB_PID=$!
-    sleep 1
-    kill -9 $SUB_PID
+    for PORT in `seq 32768 61000`
+    do
+        nc -l $PORT &
+        FAKE_SUB_PID=$!
+        sleep 1
+        if kill -0 $FAKE_SUB_PID
+        then
+            break
+        fi
+    done
+    mkdir -p $TMP_META_DIR/sub/foo
+    touch $TMP_META_DIR/sub/foo/127.0.0.1:$PORT,foo
+    kill $FAKE_SUB_PID
 
     echo "hello world" | env WISSBI_META_DIR=$TMP_META_DIR WISSBI_PUB_WAIT_TIMEOUT_SEC=3 $BUILD_DIR/wissbi-pub foo &
     PUB_PID=$!
