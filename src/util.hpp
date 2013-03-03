@@ -1,6 +1,7 @@
 #ifndef WISSBI_UTIL_HPP_
 #define WISSBI_UTIL_HPP_
 
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -9,11 +10,12 @@
 #include <string.h>
 #include <string>
 #include <sstream>
+#include <algorithm>
 
 namespace wissbi {
 namespace util {
 
-void ConnectStringToSockaddr(const std::string& conn_str, sockaddr_in* addr_ptr) {
+static void ConnectStringToSockaddr(const std::string& conn_str, sockaddr_in* addr_ptr) {
     memset(addr_ptr, 0, sizeof(*addr_ptr));
     auto idx = conn_str.find(":");
     addr_ptr->sin_addr.s_addr = inet_addr(conn_str.substr(0, idx).c_str());
@@ -26,7 +28,7 @@ void ConnectStringToSockaddr(const std::string& conn_str, sockaddr_in* addr_ptr)
     addr_ptr->sin_family = AF_INET;
 }
 
-std::string GetHostIP() {
+static std::string GetHostIP() {
     char buf[256];
     gethostname(buf, 256);
     struct addrinfo addr_hint;
@@ -36,6 +38,18 @@ std::string GetHostIP() {
     struct addrinfo *addr_head;
     getaddrinfo(buf, NULL, &addr_hint, &addr_head);
     return inet_ntoa(reinterpret_cast<struct sockaddr_in*>(addr_head->ai_addr)->sin_addr);
+}
+
+static std::string EscapeSubFolderPath(const std::string& unescaped) {
+    std::string res(unescaped);
+    std::replace(res.begin(), res.end(), '/', '#');
+    return res;
+}
+
+static std::string UnescapeSubFolderPath(const std::string& escaped) {
+    std::string res(escaped);
+    std::replace(res.begin(), res.end(), '#', '/');
+    return res;
 }
 
 }

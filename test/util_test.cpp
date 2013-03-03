@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <fstream>
 
-TEST(UtilTest, TestConnectStringToSockaddr) {
+TEST(UtilTest, TestConnectStringToSockaddr1) {
     sockaddr_in in_addr;
     wissbi::util::ConnectStringToSockaddr("192.168.0.1:12345", &in_addr);
     EXPECT_EQ(12345, ntohs(in_addr.sin_port));
@@ -22,4 +22,14 @@ TEST(UtilTest, TestGetHostIP) {
     std::getline(ifs, ip);
     unlink(tmpfile);
     EXPECT_STREQ(ip.c_str(), wissbi::util::GetHostIP().c_str());
+}
+
+TEST(UtilTest, TestEscapeSubFolderPath1) {
+    std::string unescaped("foo/bar/test");
+    EXPECT_STREQ("foo#bar#test", wissbi::util::EscapeSubFolderPath(unescaped).c_str());
+}
+
+TEST(UtilTest, TestUnescapeSubFolderPath1) {
+    std::string escaped("foo#bar#test");
+    EXPECT_STREQ("foo/bar/test", wissbi::util::UnescapeSubFolderPath(escaped).c_str());
 }

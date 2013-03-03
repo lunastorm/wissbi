@@ -2,6 +2,7 @@
 #define WISSBI_IO_POLICY_SYSVMQ_HPP_
 
 #include "msg_buf.hpp"
+#include "util.hpp"
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -30,9 +31,10 @@ class SysvMq {
 
     void mq_init(const std::string& name) {
         std::ostringstream oss;
-        oss << "/tmp/wissbi.sysvmq." << getpid() << "." << name;
+        oss << "/tmp/wissbi.sysvmq." << getpid() << "." << wissbi::util::EscapeSubFolderPath(name);
         key_file_ = oss.str();
         int res = creat(key_file_.c_str(), O_RDONLY | S_IRUSR | S_IWUSR);
+        assert(-1 != res);
         close(res);
         key_ = ftok(key_file_.c_str(), 0);
         mqid_ = msgget(key_, IPC_CREAT | S_IRUSR | S_IWUSR);

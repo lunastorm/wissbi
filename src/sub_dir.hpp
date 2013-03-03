@@ -1,12 +1,14 @@
 #ifndef WISSBI_SUB_DIR_HPP_
 #define WISSBI_SUB_DIR_HPP_
 
+#include "util.hpp"
 #include <sys/types.h>
 #include <dirent.h>
 #include <string.h>
 #include <string>
 #include <vector>
 #include <tuple>
+#include <algorithm>
 
 namespace wissbi {
 
@@ -31,7 +33,8 @@ class SubDir {
                 }
                 std::string entry(ent->d_name);
                 size_t sep_pos = entry.find(",");
-                res.push_back(std::make_tuple(entry.substr(0, sep_pos), entry.substr(sep_pos + 1, entry.length() - sep_pos - 1)));
+                res.push_back(std::make_tuple(entry.substr(0, sep_pos),
+                    wissbi::util::UnescapeSubFolderPath(entry.substr(sep_pos + 1, entry.length() - sep_pos - 1))));
             }
             closedir(dir_ptr);
         }
