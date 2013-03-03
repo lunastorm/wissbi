@@ -3,7 +3,10 @@
 _wissbi ()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
-    COMPREPLY=( $( compgen -W "`ls /var/lib/wissbi/sub`" -- $cur) )
+    local dir=$(echo $cur | sed -e '/\//!d ; s/\(.*\)\/.*/\1\//')
+    local last=$(echo $cur | sed -e 's/.*\///')
+    COMPREPLY=($(for dest in $(compgen -W "`cd /var/lib/wissbi/sub/$dir ; ls | grep -v ','`" -- $last); do echo $dir$dest/ ; done))
+    compopt -o nospace
 }
 complete -F _wissbi wissbi-sub
 complete -F _wissbi wissbi-pub
