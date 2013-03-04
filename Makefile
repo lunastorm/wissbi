@@ -50,6 +50,7 @@ deb:
 	mkdir -p $(DEBBUILD_DIR)/DEBIAN
 	cd $(DEBBUILD_DIR) ; find . -type f | sed -e '/DEBIAN\/md5sums/d' | xargs md5sum | sed -e 's/\.\///g' > DEBIAN/md5sums
 	cp -f pkg/deb/* $(DEBBUILD_DIR)/DEBIAN/
+	sed -i -e 's/^Architecture:.*/Architecture: amd64/' $(DEBBUILD_DIR)/DEBIAN/control
 	dpkg-deb --build $(DEBBUILD_DIR)
 	mkdir -p output/artifacts
 	mv tmp/wissbi-*.deb output/artifacts/
