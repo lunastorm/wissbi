@@ -44,6 +44,8 @@ install: build
 	cp -f scripts/wsbmetad $(INSTALL_PREFIX)/etc/init.d
 	cp -f scripts/wissbi_filter_template.sh $(INSTALL_PREFIX)/usr/bin
 	cp -f scripts/wdb $(INSTALL_PREFIX)/usr/bin
+	cp -f scripts/wsbmetric.py $(INSTALL_PREFIX)/usr/bin
+	cp -f scripts/wsbmetricd $(INSTALL_PREFIX)/etc/init.d
 	cp -rf doc/* $(INSTALL_PREFIX)/usr/share/doc/wissbi
 
 .PHONY:	deb

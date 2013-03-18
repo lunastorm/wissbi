@@ -1,0 +1,10 @@
+#!/bin/sh
+
+WISSBI_FILTER_COUNT="1"
+WISSBI_FILTER_CMD="/usr/bin/wsbmetric.py"
+WISSBI_FILTER_SOURCE="wissbi.metric"
+WISSBI_FILTER_SINK=""
+WISSBI_FILTER_LOG_PREFIX="/tmp/wsbmetricd"
+WISSBI_FILTER_PID_PREFIX="/tmp/wsbmetricd"
+
+. /usr/bin/wissbi_filter_template.sh
