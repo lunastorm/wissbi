@@ -63,11 +63,11 @@ start() {
         then
             env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $WISSBI_FILTER_SOURCE >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-sub.err &
             echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid
-            /bin/sh -c "cat $FIFO | `if [ -n $WISSBI_RECORD_CMD ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_FILTER_CMD >$WISSBI_FILTER_LOG_PREFIX-$i-filter.out 2>>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err ; rm -rf $FIFO_DIR" &>/dev/null &
+            /bin/sh -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_FILTER_CMD >$WISSBI_FILTER_LOG_PREFIX-$i-filter.out 2>>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err ; rm -rf $FIFO_DIR" &>/dev/null &
         else
             env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $WISSBI_FILTER_SOURCE >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-sub.err &
             echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid
-            /bin/sh -c "cat $FIFO | `if [ -n $WISSBI_RECORD_CMD ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_FILTER_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" &>/dev/null &
+            /bin/sh -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_FILTER_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" &>/dev/null &
         fi
     done
 }
