@@ -17,3 +17,18 @@ TEST(UtilTest, TestGetHostIP) {
     pclose(f);
     EXPECT_STREQ(buf, wissbi::util::GetHostIP().c_str());
 }
+
+TEST(UtilTest, TestEscapeSubFolderPath) {
+    std::string unescaped("foo/bar/test");
+    EXPECT_STREQ("foo#bar#test", wissbi::util::EscapeSubFolderPath(unescaped).c_str());
+}
+
+TEST(UtilTest, TestIgnoreTrailingSlash) {
+    std::string unescaped("foo/bar/test/");
+    EXPECT_STREQ("foo#bar#test", wissbi::util::EscapeSubFolderPath(unescaped).c_str());
+}
+
+TEST(UtilTest, TestUnescapeSubFolderPath) {
+    std::string escaped("foo#bar#test");
+    EXPECT_STREQ("foo/bar/test", wissbi::util::UnescapeSubFolderPath(escaped).c_str());
+}

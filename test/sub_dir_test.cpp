@@ -77,3 +77,26 @@ TEST_F(SubDirTest, HasSubQueue) {
     }));
 }
 
+TEST_F(SubDirTest, SubQueueEntry) {
+    system((std::string("mkdir -p ") + meta_dir_ + "/sub/foo/bar/test").c_str());
+    system((std::string("touch ") + meta_dir_ + "/sub/foo/bar/test/192.168.0.1:12345,foo#bar#test").c_str());
+    system((std::string("touch ") + meta_dir_ + "/sub/foo/bar/test/192.168.0.2:12345,foo#bar#test").c_str());
+    system((std::string("touch ") + meta_dir_ + "/sub/foo/bar/test/192.168.0.3:12345,link#from#other").c_str());
+
+    wissbi::SubDir sub_dir(meta_dir_, "foo/bar/test");
+    auto list = sub_dir.GetSubList();
+    EXPECT_EQ(3, list.size());
+    EXPECT_NE(list.end(), std::find_if(list.begin(), list.end(),
+        [](std::tuple<std::string, std::string> t){
+            return std::get<0>(t) == "192.168.0.1:12345" && std::get<1>(t) == "foo/bar/test";
+    }));
+    EXPECT_NE(list.end(), std::find_if(list.begin(), list.end(),
+        [](std::tuple<std::string, std::string> t){
+            return std::get<0>(t) == "192.168.0.2:12345" && std::get<1>(t) == "foo/bar/test";
+    }));
+    EXPECT_NE(list.end(), std::find_if(list.begin(), list.end(),
+        [](std::tuple<std::string, std::string> t){
+            return std::get<0>(t) == "192.168.0.3:12345" && std::get<1>(t) == "link/from/other";
+    }));
+}
+
