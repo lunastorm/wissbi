@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
     thread([&metric_reporter]{
         while(true) {
-            this_thread::sleep_for(chrono::seconds(30));
+            this_thread::sleep_for(chrono::seconds(1));
             metric_reporter.Report();
         }
     }).detach();
