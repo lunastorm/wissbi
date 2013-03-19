@@ -11,7 +11,7 @@ class IOStreamBase
 {
     public:
     IOStreamBase() : is_ptr_(&std::cin), os_ptr_(&std::cout) {
-        std::thread([os_ptr_]{
+        std::thread([&os_ptr_]{
             while(true) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 os_ptr_->flush();
