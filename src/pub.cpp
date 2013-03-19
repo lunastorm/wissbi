@@ -79,7 +79,6 @@ int main(int argc, char* argv[]) {
     input_filter.FilterLoop();
 
     sleep_while([dest, &pending_counter]{ return pending_counter > 0; }, wait_timeout_sec);
-    std::cerr<<"pending counter: " << pending_counter << endl;
 
     metric_reporter.Report();
 
