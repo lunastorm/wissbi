@@ -36,7 +36,7 @@ class MsgFilter : public InputWrapper<input_policy>, public OutputWrapper<output
         post_filter_func_([](bool filter_result, MsgBuf& msg){ return filter_result; })
         {}
 
-    bool Filter() {
+    virtual bool Filter() {
         bool res = pre_filter_func_()
             && static_cast<InputWrapper<input_policy>*>(this)->Get(&msg_buf_)
             && filter_func_(msg_buf_)

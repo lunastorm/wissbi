@@ -16,7 +16,7 @@ class String : public Length
         set_ostream(new std::ostream(&buf_));
     }
 
-    void Send(const std::string& msg) {
+    virtual void Send(const std::string& msg) {
         std::ostringstream oss;
         oss << msg.length() << " " << msg;
         buf_.str(oss.str());
