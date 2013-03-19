@@ -32,6 +32,7 @@ add_executable(runUnitTests
     tcp_io_policy_test.cpp
     tee_io_policy_test.cpp
     string_io_policy_test.cpp
+    metric_reporter_test.cpp
 )
 
 target_link_libraries(runUnitTests ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY} ${GMOCK_LIBRARY} pthread)
