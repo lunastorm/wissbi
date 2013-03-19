@@ -6,18 +6,18 @@
 #include "io_policy/tee.hpp"
 #include "io_policy/sysv_mq.hpp"
 #include "io_policy/string.hpp"
-#include <map>
+#include <list>
 #include <sstream>
 
 namespace wissbi {
 
 class MetricReporter {
     typedef MsgFilter<io_policy::String, io_policy::Tee<io_policy::SysvMq>> InputFilter;
-    typedef std::map<std::string, FilterMetric> MetricMap;
+    typedef std::list<FilterMetric> MetricList;
 
     public:
-    MetricReporter(MetricMap& metric_map, InputFilter& input_filter, const std::string& direction) :
-        metric_map_(metric_map), input_filter_(input_filter), direction_(direction)
+    MetricReporter(MetricList& metric_list, InputFilter& input_filter, const std::string& direction) :
+        metric_list_(metric_list), input_filter_(input_filter), direction_(direction)
     {
     }
 
@@ -27,20 +27,20 @@ class MetricReporter {
 
     void Report()
     {
-        for(auto iter = metric_map_.begin(); iter != metric_map_.end() ; ++iter) {
-            unsigned int last_processed = metric_map_[iter->first].last_processed.exchange(0);
+        for(FilterMetric& metric : metric_list_) {
+            unsigned int last_processed = metric.last_processed.exchange(0);
             if(!last_processed) {
                 continue;
             }
             std::ostringstream oss;
-            oss << iter->first << "," << direction_ << "," << last_processed;
+            oss << metric.name << "," << direction_ << "," << last_processed;
             input_filter_.Send(oss.str());
             input_filter_.Filter();
         }
     }
 
     private:
-    MetricMap& metric_map_;
+    MetricList& metric_list_;
     InputFilter& input_filter_;
     std::string direction_;
 };

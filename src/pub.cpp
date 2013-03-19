@@ -46,14 +46,17 @@ int main(int argc, char* argv[]) {
         iss >> wait_timeout_sec;
     }
 
-    map<string, FilterMetric> metric_map;
+    list<FilterMetric> metric_list;
+    atomic_uint pending_counter(0);
 
     StdInputFilter input_filter;
-    Connector<StdInputFilter> connector(dest, input_filter, metric_map);
+    Connector<StdInputFilter> connector(dest, input_filter, metric_list, pending_counter);
 
     MetricInputFilter metric_input_filter;
-    Connector<MetricInputFilter> metric_connector("wissbi.metric", metric_input_filter, metric_map);
-    MetricReporter metric_reporter(metric_map, metric_input_filter, "enqueue");
+    list<FilterMetric> dummy_metric_list;
+    atomic_uint dummy_counter(0);
+    Connector<MetricInputFilter> metric_connector("wissbi.metric", metric_input_filter, dummy_metric_list, dummy_counter);
+    MetricReporter metric_reporter(metric_list, metric_input_filter, "enqueue");
 
     thread([&metric_reporter]{
         while(true) {
@@ -66,16 +69,17 @@ int main(int argc, char* argv[]) {
         sleep_while([&input_filter]{ return input_filter.GetBranchCount() == 0; }, wait_timeout_sec);
         return true;
     });
-    input_filter.set_post_filter_func([dest, &input_filter, &metric_map](bool filter_result, MsgBuf& msgbuf){
+    input_filter.set_post_filter_func([dest, &input_filter, &pending_counter](bool filter_result, MsgBuf& msgbuf){
         if(filter_result == true) {
-            metric_map[dest].pending += input_filter.GetLastTeeCount();
+            pending_counter += input_filter.GetLastTeeCount();
         }
         return filter_result;
     });
 
     input_filter.FilterLoop();
 
-    sleep_while([dest, &metric_map]{ return metric_map[dest].pending > 0; }, wait_timeout_sec);
+    sleep_while([dest, &pending_counter]{ return pending_counter > 0; }, wait_timeout_sec);
+    std::cerr<<"pending counter: " << pending_counter << endl;
 
     metric_reporter.Report();
 

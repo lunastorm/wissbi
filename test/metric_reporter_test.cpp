@@ -21,9 +21,9 @@ class MetricReporterTest : public ::testing::Test {
 };
 
 TEST_F(MetricReporterTest, SingleMetric) {
-    map<string, FilterMetric> metric_map;
+    list<FilterMetric> metric_list;
     MockInputFilter mocked_input;
-    MetricReporter reporter(metric_map, mocked_input, "enqueue");
+    MetricReporter reporter(metric_list, mocked_input, "enqueue");
 
     {
         ::testing::InSequence dummy;
@@ -31,15 +31,17 @@ TEST_F(MetricReporterTest, SingleMetric) {
         EXPECT_CALL(mocked_input, Filter()).WillOnce(::testing::Return(true));
     }
 
-    FilterMetric& metric = metric_map["foo/out"];
+    metric_list.push_back(FilterMetric("foo/out"));
+    FilterMetric& metric = metric_list.back();
+
     metric.last_processed += 5566;
     reporter.Report();
 }
 
 TEST_F(MetricReporterTest, Direction) {
-    map<string, FilterMetric> metric_map;
+    list<FilterMetric> metric_list;
     MockInputFilter mocked_input;
-    MetricReporter reporter(metric_map, mocked_input, "dequeue");
+    MetricReporter reporter(metric_list, mocked_input, "dequeue");
 
     {
         ::testing::InSequence dummy;
@@ -47,15 +49,16 @@ TEST_F(MetricReporterTest, Direction) {
         EXPECT_CALL(mocked_input, Filter()).WillOnce(::testing::Return(true));
     }
 
-    FilterMetric& metric = metric_map["foo/out"];
+    metric_list.push_back(FilterMetric("foo/out"));
+    FilterMetric& metric = metric_list.back();
     metric.last_processed += 5566;
     reporter.Report();
 }
 
 TEST_F(MetricReporterTest, MetricReset) {
-    map<string, FilterMetric> metric_map;
+    list<FilterMetric> metric_list;
     MockInputFilter mocked_input;
-    MetricReporter reporter(metric_map, mocked_input, "enqueue");
+    MetricReporter reporter(metric_list, mocked_input, "enqueue");
 
     {
         ::testing::InSequence dummy;
@@ -65,7 +68,8 @@ TEST_F(MetricReporterTest, MetricReset) {
         EXPECT_CALL(mocked_input, Filter()).WillOnce(::testing::Return(true));
     }
 
-    FilterMetric& metric = metric_map["foo/out"];
+    metric_list.push_back(FilterMetric("foo/out"));
+    FilterMetric& metric = metric_list.back();
     metric.last_processed += 5566;
     reporter.Report();
     metric.last_processed += 1234;
@@ -73,9 +77,9 @@ TEST_F(MetricReporterTest, MetricReset) {
 }
 
 TEST_F(MetricReporterTest, IgnoreZero) {
-    map<string, FilterMetric> metric_map;
+    list<FilterMetric> metric_list;
     MockInputFilter mocked_input;
-    MetricReporter reporter(metric_map, mocked_input, "enqueue");
+    MetricReporter reporter(metric_list, mocked_input, "enqueue");
 
     {
         ::testing::InSequence dummy;
@@ -85,7 +89,8 @@ TEST_F(MetricReporterTest, IgnoreZero) {
         EXPECT_CALL(mocked_input, Filter()).WillOnce(::testing::Return(true));
     }
 
-    FilterMetric& metric = metric_map["foo/out"];
+    metric_list.push_back(FilterMetric("foo/out"));
+    FilterMetric& metric = metric_list.back();
     metric.last_processed += 5566;
     reporter.Report();
     reporter.Report();
@@ -94,9 +99,9 @@ TEST_F(MetricReporterTest, IgnoreZero) {
 }
 
 TEST_F(MetricReporterTest, MultipleMetrics) {
-    map<string, FilterMetric> metric_map;
+    list<FilterMetric> metric_list;
     MockInputFilter mocked_input;
-    MetricReporter reporter(metric_map, mocked_input, "enqueue");
+    MetricReporter reporter(metric_list, mocked_input, "enqueue");
 
     {
         ::testing::InSequence dummy;
@@ -108,11 +113,14 @@ TEST_F(MetricReporterTest, MultipleMetrics) {
         EXPECT_CALL(mocked_input, Filter()).WillOnce(::testing::Return(true));
     }
 
-    FilterMetric& bar_metric = metric_map["bar"];
+    metric_list.push_back(FilterMetric("bar"));
+    FilterMetric& bar_metric = metric_list.back();
     bar_metric.last_processed += 1234;
-    FilterMetric& foo_metric = metric_map["foo"];
+    metric_list.push_back(FilterMetric("foo"));
+    FilterMetric& foo_metric = metric_list.back();
     foo_metric.last_processed += 5566;
-    FilterMetric& zoo_metric = metric_map["zoo"];
+    metric_list.push_back(FilterMetric("zoo"));
+    FilterMetric& zoo_metric = metric_list.back();
 
     reporter.Report();
     reporter.Report();

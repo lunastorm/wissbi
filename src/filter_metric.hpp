@@ -7,16 +7,21 @@ namespace wissbi {
 
 typedef struct FilterMetric {
     FilterMetric() :
-        pending(0),
+        name(""),
+        last_processed(0),
+        total_processed(0) {}
+
+    explicit FilterMetric(const std::string& in_name) :
+        name(in_name),
         last_processed(0),
         total_processed(0) {}
 
     FilterMetric(const FilterMetric& rhs) :
-        pending(rhs.pending.load()),
+        name(rhs.name),
         last_processed(rhs.last_processed.load()),
         total_processed(rhs.total_processed.load()) {}
 
-    std::atomic_uint pending;
+    std::string name;
     std::atomic_uint last_processed;
     std::atomic_ullong total_processed;
 } FilterMetric;

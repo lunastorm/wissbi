@@ -5,7 +5,8 @@
 #include <thread>
 #include <unordered_set>
 #include <cstdlib>
-#include <map>
+#include <list>
+#include <atomic>
 #include "msg_filter.hpp"
 #include "sub_dir.hpp"
 #include "io_policy/tee.hpp"
@@ -21,11 +22,11 @@ template
     class T
 >
 class Connector {
-    typedef std::map<std::string, FilterMetric> MetricMap;
+    typedef std::list<FilterMetric> MetricList;
 public:
-    Connector(const std::string dest, T& input_filter, MetricMap& metric_map)
+    Connector(const std::string dest, T& input_filter, MetricList& metric_list, std::atomic_uint& pending_counter)
     {
-        std::thread(ConnectorLoop, dest, std::ref(input_filter), std::ref(metric_map)).detach();
+        std::thread(ConnectorLoop, dest, std::ref(input_filter), std::ref(metric_list), std::ref(pending_counter)).detach();
     }
 
     ~Connector()
@@ -33,7 +34,7 @@ public:
     }
 
 private:
-    static void ConnectorLoop(const std::string dest, T& filter, MetricMap& metric_map)
+    static void ConnectorLoop(const std::string dest, T& filter, MetricList& metric_list, std::atomic_uint& pending_counter)
     {
         std::unordered_set<std::string> producer_set;
 
@@ -52,7 +53,17 @@ private:
                     filter.AddBranch(real_dest, mq_ptr);
                 }
 
-                std::thread([conn_str, dest, real_dest, &producer_set, &metric_map]{
+                auto iter = std::find_if(metric_list.begin(), metric_list.end(), [real_dest](const FilterMetric& m){
+                    return m.name == real_dest;
+                });
+
+                if(iter == metric_list.end()) {
+                    metric_list.push_front(FilterMetric(real_dest));
+                    iter = metric_list.begin();
+                }
+                FilterMetric& metric = *iter;
+
+                std::thread([conn_str, dest, real_dest, &producer_set, &metric, &pending_counter]{
                     sockaddr sock_addr;
                     util::ConnectStringToSockaddr(conn_str, reinterpret_cast<sockaddr_in*>(&sock_addr));
                     MsgFilter<io_policy::SysvMq, io_policy::TCP> producerFilter;
@@ -64,11 +75,11 @@ private:
                         producer_set.erase(conn_str);
                         return;
                     }
-                    producerFilter.set_post_filter_func([dest, real_dest, &metric_map, &producerFilter](bool filter_result, MsgBuf& msg_buf){
+                    producerFilter.set_post_filter_func([dest, real_dest, &metric, &pending_counter, &producerFilter](bool filter_result, MsgBuf& msg_buf){
                         if(filter_result == true) {
-                            --metric_map[dest].pending;
-                            ++metric_map[real_dest].last_processed;
-                            ++metric_map[real_dest].total_processed;
+                            --pending_counter;
+                            ++metric.last_processed;
+                            ++metric.total_processed;
                             return true;
                         }
                         else {
