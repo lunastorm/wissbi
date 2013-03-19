@@ -52,6 +52,7 @@ int main(int argc, char* argv[]){
 
     MsgFilter<io_policy::SysvMq, io_policy::Line> output_writer;
     output_writer.mq_init("");
+    output_writer.auto_flush();
     thread* output_th = new thread([&output_writer](){
         output_writer.FilterLoop();
     });

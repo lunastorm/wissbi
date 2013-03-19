@@ -11,6 +11,7 @@ int main(int argc, char* argv[]) {
     int count = 0;
 
     MsgFilter<io_policy::Line, io_policy::Line> counter;
+    static_cast<OutputWrapper<io_policy::Line>&>(counter).auto_flush();
     counter.set_filter_func([&last_update_ts, &count](MsgBuf& msg){
         count++;
         time_t current_ts = time(NULL);
