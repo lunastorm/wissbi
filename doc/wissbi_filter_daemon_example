@@ -8,6 +8,9 @@ WISSBI_FILTER_COUNT="1"
 # How to run the filter
 WISSBI_FILTER_CMD="sed --unbuffered -e \"s/^/[ / ; s/$/ ]/\""
 
+# If you run multiple instances in parallel, you can use the instance id \$i in the command
+# WISSBI_FILTER_CMD="sed --unbuffered -e \"s/^/\$i: [ / ; s/$/ ]/\""
+
 # The message source's name, leave it empty if the filter is a message generator
 WISSBI_FILTER_SOURCE="test.in"
 
