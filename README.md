@@ -24,7 +24,18 @@ The debian package will be put under output/artifacts
 - You can run dpkg -i [debian package name] to install it to system or
 - simply run make install
 
-
 # Usage
+```bash
+wissbi-sub test
+```
+This will launch a subscriber listening messages from a source named "test", and write the messages to stdout.
+
+Now you can start a new terminal session and execute:
+```bash
+echo "hello world" | wissbi-pub test
+```
+
+You can see the message "hello world" appeared in the subscriber's terminal.
+
 
 # Administration
