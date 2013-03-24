@@ -2,8 +2,7 @@ Package: wissbi
 Version: 0.1
 Section: base
 Priority: optional
-Architecture: all
-Depends: 
+Architecture: ${arch}
 Maintainer: lunastorm (lunastorm@lunastorm.tw)
 Description: Wissbi, A Distributed Event System
 

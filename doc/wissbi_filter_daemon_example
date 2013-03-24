@@ -1,0 +1,29 @@
+#!/bin/sh
+
+##### You can copy and modify this script and set the varaibles to create a wissbi filter as a daemon easily #####
+
+# How many filter instances will be run in parallel
+WISSBI_FILTER_COUNT="1"
+
+# How to run the filter
+WISSBI_FILTER_CMD="sed --unbuffered -e \"s/^/[ / ; s/$/ ]/\""
+
+# If you run multiple instances in parallel, you can use the instance id \$i in the command
+# WISSBI_FILTER_CMD="sed --unbuffered -e \"s/^/\$i: [ / ; s/$/ ]/\""
+
+# The message source's name, leave it empty if the filter is a message generator
+WISSBI_FILTER_SOURCE="test.in"
+
+# The message sink's name, leave it empty if the filter is a message terminal
+WISSBI_FILTER_SINK="test.out"
+
+WISSBI_FILTER_LOG_PREFIX="/tmp/filter-example"
+WISSBI_FILTER_PID_PREFIX="/tmp/filter-example"
+
+# If WISSBI_DEBUG_DUMP is set, message recording will be enabled, and 50 messages
+# before the filter is terminated is dumped to the specified file.
+# If WISSBI_DEBUG_DUMP is set to empty, then a random dump filename will be used
+
+#WISSBI_DEBUG_DUMP=""
+
+. /usr/bin/wissbi_filter_template.sh

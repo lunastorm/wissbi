@@ -35,7 +35,8 @@ int main(int argc, char* argv[]) {
 
     MsgFilter<io_policy::Line, io_policy::Line> recorder;
     deque<string> *mq_ptr = &mq;
-    recorder.set_filter_func([mq_ptr, max_size](MsgBuf& msg){
+    static_cast<OutputWrapper<io_policy::Line>&>(recorder).auto_flush();
+    recorder.set_filter_func([&mq, max_size](MsgBuf& msg){
         if(mq_ptr->size() == max_size) {
             mq_ptr->pop_front();
         }

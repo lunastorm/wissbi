@@ -34,6 +34,7 @@ install: build
 	mkdir -p $(INSTALL_PREFIX)/usr/bin
 	mkdir -p $(INSTALL_PREFIX)/etc/init.d
 	mkdir -p $(INSTALL_PREFIX)/etc/bash_completion.d
+	mkdir -p $(INSTALL_PREFIX)/usr/share/doc/wissbi
 	cp -f tmp/build/wissbi-pub $(INSTALL_PREFIX)/usr/bin
 	cp -f tmp/build/wissbi-sub $(INSTALL_PREFIX)/usr/bin
 	cp -f tmp/build/wissbi-count $(INSTALL_PREFIX)/usr/bin
@@ -42,6 +43,10 @@ install: build
 	cp -f scripts/wsbmetad.sh $(INSTALL_PREFIX)/usr/bin
 	cp -f scripts/wsbmetad $(INSTALL_PREFIX)/etc/init.d
 	cp -f scripts/wissbi_filter_template.sh $(INSTALL_PREFIX)/usr/bin
+	cp -f scripts/wdb $(INSTALL_PREFIX)/usr/bin
+	cp -f scripts/wsbmetric.py $(INSTALL_PREFIX)/usr/bin
+	cp -f scripts/wsbmetricd $(INSTALL_PREFIX)/etc/init.d
+	cp -rf doc/* $(INSTALL_PREFIX)/usr/share/doc/wissbi
 
 .PHONY:	deb
 deb:
@@ -50,6 +55,7 @@ deb:
 	mkdir -p $(DEBBUILD_DIR)/DEBIAN
 	cd $(DEBBUILD_DIR) ; find . -type f | sed -e '/DEBIAN\/md5sums/d' | xargs md5sum | sed -e 's/\.\///g' > DEBIAN/md5sums
 	cp -f pkg/deb/* $(DEBBUILD_DIR)/DEBIAN/
+	sed -i -e 's/^Architecture:.*/Architecture: amd64/' $(DEBBUILD_DIR)/DEBIAN/control
 	dpkg-deb --build $(DEBBUILD_DIR)
 	mkdir -p output/artifacts
 	mv tmp/wissbi-*.deb output/artifacts/

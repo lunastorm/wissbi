@@ -6,72 +6,14 @@
 #include <thread>
 #include <unordered_set>
 #include <atomic>
-#include "msg_filter.hpp"
-#include "sub_dir.hpp"
+#include "connector.hpp"
 #include "io_policy/line.hpp"
-#include "io_policy/sysv_mq.hpp"
-#include "io_policy/tcp.hpp"
-#include "io_policy/tee.hpp"
-#include "util.hpp"
+#include "metric_reporter.hpp"
 
 using namespace wissbi;
 using namespace std; 
 
-atomic_uint in_process_cnt(0);
-
 void exit_signal_handler(int signum) {
-}
-
-typedef MsgFilter<io_policy::Line, io_policy::Tee<io_policy::SysvMq>> InputFilter;
-
-void scan_dest_loop(const string& dest, InputFilter& input_filter) {
-    unordered_set<string> producer_set;
-
-    SubDir sub_dir(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", dest);
-    while(true) {
-        for(auto sub_entry_tuple : sub_dir.GetSubList()) {
-            const std::string& conn_str = std::get<0>(sub_entry_tuple);
-            const std::string& dest = std::get<1>(sub_entry_tuple);
-            if(producer_set.find(conn_str) != producer_set.end()) {
-                continue;
-            }
-            if(!input_filter.ExistsBranch(dest)) {
-                shared_ptr<io_policy::SysvMq> mq_ptr(new io_policy::SysvMq());
-                mq_ptr->mq_init(dest);
-                input_filter.AddBranch(dest, mq_ptr);
-            }
-
-            thread([conn_str, dest, &producer_set]{
-                sockaddr sock_addr;
-                util::ConnectStringToSockaddr(conn_str, reinterpret_cast<sockaddr_in*>(&sock_addr));
-                MsgFilter<io_policy::SysvMq, io_policy::TCP> producerFilter;
-                try {
-                    producerFilter.Connect(&sock_addr);
-                }
-                catch (...) {
-                    cerr << "error connecting" << endl;
-                    producer_set.erase(conn_str);
-                    return;
-                }
-                producerFilter.set_post_filter_func([&producerFilter](bool filter_result, MsgBuf& msg_buf){
-                    if(filter_result == true) {
-                        in_process_cnt--;
-                        return true;
-                    }
-                    else {
-                        static_cast<InputWrapper<io_policy::SysvMq>&>(producerFilter).Put(msg_buf);
-                        return false;
-                    }
-                });
-                producerFilter.set_cleanup(false);
-                producerFilter.mq_init(dest);
-                producerFilter.FilterLoop();
-                producer_set.erase(conn_str);
-            }).detach();
-            producer_set.insert(conn_str);
-        }
-        this_thread::sleep_for(chrono::seconds(1));
-    }
 }
 
 void sleep_while(std::function<bool()> cond, int second) {
@@ -84,7 +26,11 @@ void sleep_while(std::function<bool()> cond, int second) {
     }
 }
 
+typedef MsgFilter<io_policy::Line, io_policy::Tee<io_policy::SysvMq>> StdInputFilter;
+typedef MsgFilter<io_policy::String, io_policy::Tee<io_policy::SysvMq>> MetricInputFilter;
+
 int main(int argc, char* argv[]) {
+    std::string dest(argv[1]);
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
     signal(SIGPIPE, exit_signal_handler);
@@ -101,23 +47,41 @@ int main(int argc, char* argv[]) {
         iss >> wait_timeout_sec;
     }
 
-    InputFilter input_filter;
-    thread(scan_dest_loop, argv[1], std::ref(input_filter)).detach();
+    list<FilterMetric> metric_list;
+    atomic_uint pending_counter(0);
+
+    StdInputFilter input_filter;
+    Connector<StdInputFilter> connector(dest, input_filter, metric_list, pending_counter);
+
+    MetricInputFilter metric_input_filter;
+    list<FilterMetric> dummy_metric_list;
+    atomic_uint dummy_counter(0);
+    Connector<MetricInputFilter> metric_connector("wissbi.metric", metric_input_filter, dummy_metric_list, dummy_counter);
+    MetricReporter metric_reporter(metric_list, metric_input_filter, "enqueue");
+
+    thread([&metric_reporter]{
+        while(true) {
+            this_thread::sleep_for(chrono::seconds(1));
+            metric_reporter.Report();
+        }
+    }).detach();
 
     input_filter.set_pre_filter_func([&input_filter, wait_timeout_sec] {
         sleep_while([&input_filter]{ return input_filter.GetBranchCount() == 0; }, wait_timeout_sec);
         return true;
     });
-    input_filter.set_post_filter_func([&input_filter](bool filter_result, MsgBuf& msgbuf){
+    input_filter.set_post_filter_func([dest, &input_filter, &pending_counter](bool filter_result, MsgBuf& msgbuf){
         if(filter_result == true) {
-            in_process_cnt += input_filter.GetLastTeeCount();
+            pending_counter += input_filter.GetLastTeeCount();
         }
         return filter_result;
     });
 
     input_filter.FilterLoop();
 
-    sleep_while([]{ return in_process_cnt > 0; }, wait_timeout_sec);
+    sleep_while([dest, &pending_counter]{ return pending_counter > 0; }, wait_timeout_sec);
+
+    metric_reporter.Report();
 
 	return 0;
 }

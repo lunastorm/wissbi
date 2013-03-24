@@ -1,0 +1,35 @@
+#!/bin/sh
+
+set -o nounset
+
+if [ $# -eq 0 ]
+then
+    echo "Usage: $0 [executable-file [message-dump-file]]"
+    exit 1
+fi
+
+EXECUTABLE=$1
+if [ $# -eq 1 ]
+then
+    exec 3<&0
+else
+    exec 3<>$2
+fi
+
+LINE_CNT=0
+while read line <&3
+do
+    LINE_CNT=$((LINE_CNT+1))
+    ERR="`echo $line | $EXECUTABLE 2>&1 1>/dev/null`"
+    if [ $? -ne 0 ]
+    then
+        echo "========================"
+        echo "Execute error on message #$LINE_CNT:"
+        echo "$line"
+        echo "=="
+        echo "Output from stderr:"
+        echo "$ERR"
+        echo "========================"
+    fi
+done
+
