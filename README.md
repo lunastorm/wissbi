@@ -37,5 +37,7 @@ echo "hello world" | wissbi-pub test
 
 You can see the message "hello world" appeared in the subscriber's terminal.
 
+See https://github.com/lunastorm/wissbi/wiki/Usage for detailed usage guide.
 
 # Administration
+See https://github.com/lunastorm/wissbi/wiki/Administration for detailed administration guide.
