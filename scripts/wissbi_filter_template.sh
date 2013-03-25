@@ -3,6 +3,7 @@
 set -o nounset
 set -o errexit
 
+: ${WISSBI_RUN_AS:=""}
 : ${WISSBI_FILTER_COUNT:="1"}
 : ${WISSBI_FILTER_CMD:=""}
 : ${WISSBI_FILTER_SOURCE:=""}
@@ -48,27 +49,34 @@ fi
 
 
 start() {
+    if [ "$WISSBI_RUN_AS" = "`whoami`" ]
+    then
+        SH_CMD="/bin/sh"
+    else
+        SH_CMD="/bin/su"
+    fi
     for i in `seq 1 $WISSBI_FILTER_COUNT`
     do
         WISSBI_RESOLVED_FILTER_CMD=`echo "$WISSBI_FILTER_CMD" | sed -e "s/\\$i/$i/g"`
         FIFO_DIR=`mktemp -d`
         FIFO=$FIFO_DIR/fifo
         mkfifo $FIFO
+        chown -R $WISSBI_RUN_AS $FIFO_DIR
 
         if [ -z "$WISSBI_FILTER_SOURCE" ]
         then
-            /bin/sh -c "exec $WISSBI_RESOLVED_FILTER_CMD" >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err &
+            $SH_CMD -c "exec $WISSBI_RESOLVED_FILTER_CMD >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err" $WISSBI_RUN_AS >/dev/null 2>&1 &
             echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid
-            /bin/sh -c "cat $FIFO | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" &>/dev/null &
+            $SH_CMD -c "cat $FIFO | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" $WISSBI_RUN_AS >/dev/null 2>&1 &
         elif [ -z $WISSBI_FILTER_SINK ]
         then
-            env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $WISSBI_FILTER_SOURCE >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-sub.err &
+            $SH_CMD -c "exec env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $WISSBI_FILTER_SOURCE >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-sub.err" $WISSBI_RUN_AS >/dev/null 2>&1 &
             echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid
-            /bin/sh -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD >$WISSBI_FILTER_LOG_PREFIX-$i-filter.out 2>>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err ; rm -rf $FIFO_DIR" &>/dev/null &
+            $SH_CMD -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD >$WISSBI_FILTER_LOG_PREFIX-$i-filter.out 2>>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err ; rm -rf $FIFO_DIR" $WISSBI_RUN_AS >/dev/null 2>&1 &
         else
-            env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $WISSBI_FILTER_SOURCE >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-sub.err &
+            $SH_CMD -c "exec env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $WISSBI_FILTER_SOURCE >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-sub.err" $WISSBI_RUN_AS >/dev/null 2>&1 &
             echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid
-            /bin/sh -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" &>/dev/null &
+            $SH_CMD -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" $WISSBI_RUN_AS >/dev/null 2>&1 &
         fi
     done
 
@@ -76,7 +84,7 @@ start() {
     then
         echo $0 is started
     else
-        echo QQ
+        echo $0 is not started
     fi
 }
 
@@ -111,16 +119,32 @@ status() {
     return $retval
 }
 
+check_previlege() {
+    if [ -n "$WISSBI_RUN_AS" ]
+    then
+        if [ "`whoami`" != "root" ]
+        then
+            echo "Requires root previlege to run as $WISSBI_RUN_AS"
+            exit 1
+        fi
+    else
+        WISSBI_RUN_AS=`whoami`
+    fi
+}
+
 set +o nounset
 case "$1" in
 start)
+    check_previlege
     stop
     start
     ;;
 stop)
+    check_previlege
     stop
     ;;
 restart)
+    check_previlege
     stop
     start
     ;;
