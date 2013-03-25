@@ -71,19 +71,34 @@ start() {
             /bin/sh -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" &>/dev/null &
         fi
     done
+
+    if status
+    then
+        echo $0 is started
+    else
+        echo QQ
+    fi
 }
 
 stop() {
-    for pidfile in `ls $WISSBI_FILTER_PID_PREFIX-*.pid`
+    for pidfile in `ls $WISSBI_FILTER_PID_PREFIX-*.pid 2>/dev/null`
     do
-        kill `cat $pidfile` || true
+        pid=`cat $pidfile`
+        echo "killing $pid"
+        kill $pid || true
         rm -f $pidfile
     done
+    echo $0 is stopped
 }
 
 status() {
+    if ! ls $WISSBI_FILTER_PID_PREFIX-*.pid >/dev/null 2>&1
+    then
+        echo "$0 is not running"
+        exit 1
+    fi
     retval=0
-    for pidfile in `ls $WISSBI_FILTER_PID_PREFIX-*.pid`
+    for pidfile in `ls $WISSBI_FILTER_PID_PREFIX-*.pid 2>/dev/null`
     do
         if kill -0 `cat $pidfile` 2>/dev/null
         then
@@ -93,12 +108,13 @@ status() {
             retval=1
         fi
     done
-    exit $retval
+    return $retval
 }
 
 set +o nounset
 case "$1" in
 start)
+    stop
     start
     ;;
 stop)
