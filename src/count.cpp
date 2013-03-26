@@ -7,7 +7,7 @@ using namespace wissbi;
 using namespace std;
 
 int main(int argc, char* argv[]) {
-    time_t last_update_ts = 0;
+    time_t last_update_ts = time(NULL);
     int count = 0;
 
     MsgFilter<io_policy::Line, io_policy::Line> counter;
