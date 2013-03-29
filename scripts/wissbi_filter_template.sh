@@ -18,7 +18,7 @@ set -o errexit
 
 if [ "${WISSBI_DEBUG_DUMP+set}" = set ]
 then
-    WISSBI_RECORD_CMD="$WISSBI_RECORD_BINARY $WISSBI_DEBUG_DUMP"
+    WISSBI_RECORD_CMD="$WISSBI_RECORD_BINARY"
 else
     WISSBI_RECORD_CMD=""
 fi
@@ -58,6 +58,12 @@ start() {
     for i in `seq 1 $WISSBI_FILTER_COUNT`
     do
         WISSBI_RESOLVED_FILTER_CMD=`echo "$WISSBI_FILTER_CMD" | sed -e "s/\\$i/$i/g"`
+        if [ -n "$WISSBI_DEBUG_DUMP" ]
+        then
+            WISSBI_DUMP_NAME=$WISSBI_DEBUG_DUMP-$i.dump
+        else
+            WISSBI_DUMP_NAME=""
+        fi
         FIFO_DIR=`mktemp -d`
         FIFO=$FIFO_DIR/fifo
         mkfifo $FIFO
@@ -72,11 +78,11 @@ start() {
         then
             $SH_CMD -c "exec env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $WISSBI_FILTER_SOURCE >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-sub.err" $WISSBI_RUN_AS >/dev/null 2>&1 &
             echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid
-            $SH_CMD -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD >$WISSBI_FILTER_LOG_PREFIX-$i-filter.out 2>>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err ; rm -rf $FIFO_DIR" $WISSBI_RUN_AS >/dev/null 2>&1 &
+            $SH_CMD -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD $WISSBI_DUMP_NAME 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD >$WISSBI_FILTER_LOG_PREFIX-$i-filter.out 2>>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err ; rm -rf $FIFO_DIR" $WISSBI_RUN_AS >/dev/null 2>&1 &
         else
             $SH_CMD -c "exec env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $WISSBI_FILTER_SOURCE >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-sub.err" $WISSBI_RUN_AS >/dev/null 2>&1 &
             echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid
-            $SH_CMD -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" $WISSBI_RUN_AS >/dev/null 2>&1 &
+            $SH_CMD -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD $WISSBI_DUMP_NAME 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" $WISSBI_RUN_AS >/dev/null 2>&1 &
         fi
     done
 
