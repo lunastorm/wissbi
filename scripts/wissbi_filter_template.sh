@@ -74,15 +74,18 @@ start() {
             $SH_CMD -c "exec $WISSBI_RESOLVED_FILTER_CMD >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err" $WISSBI_RUN_AS >/dev/null 2>&1 &
             echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid
             $SH_CMD -c "cat $FIFO | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" $WISSBI_RUN_AS >/dev/null 2>&1 &
+            echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid.wait
         elif [ -z $WISSBI_FILTER_SINK ]
         then
             $SH_CMD -c "exec env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $WISSBI_FILTER_SOURCE >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-sub.err" $WISSBI_RUN_AS >/dev/null 2>&1 &
             echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid
             $SH_CMD -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD $WISSBI_DUMP_NAME 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD >$WISSBI_FILTER_LOG_PREFIX-$i-filter.out 2>>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err ; rm -rf $FIFO_DIR" $WISSBI_RUN_AS >/dev/null 2>&1 &
+            echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid.wait
         else
             $SH_CMD -c "exec env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $WISSBI_FILTER_SOURCE >$FIFO 2>$WISSBI_FILTER_LOG_PREFIX-$i-sub.err" $WISSBI_RUN_AS >/dev/null 2>&1 &
             echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid
             $SH_CMD -c "cat $FIFO | `if [ -n "$WISSBI_RECORD_CMD" ]; then echo \"$WISSBI_RECORD_CMD $WISSBI_DUMP_NAME 2>$WISSBI_FILTER_LOG_PREFIX-$i-dump.err | \"; fi` $WISSBI_RESOLVED_FILTER_CMD 2>$WISSBI_FILTER_LOG_PREFIX-$i-filter.err | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $WISSBI_FILTER_SINK 2>$WISSBI_FILTER_LOG_PREFIX-$i-pub.err ; rm -rf $FIFO_DIR" $WISSBI_RUN_AS >/dev/null 2>&1 &
+            echo $! > $WISSBI_FILTER_PID_PREFIX-$i.pid.wait
         fi
     done
 
@@ -101,6 +104,16 @@ stop() {
         echo "killing $pid"
         kill $pid || true
         rm -f $pidfile
+    done
+
+    for pidfile in `ls $WISSBI_FILTER_PID_PREFIX-*.pid.wait 2>/dev/null`
+    do
+        pid=`cat $pidfile`
+        while [ -e /proc/$pid ]
+        do
+            echo "waiting for `cat /proc/$pid/cmdline || true` to die"
+            sleep 1
+        done
     done
     echo $0 is stopped
 }
