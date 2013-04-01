@@ -111,7 +111,7 @@ stop() {
         pid=`cat $pidfile`
         while [ -e /proc/$pid ]
         do
-            echo "waiting for `cat /proc/$pid/cmdline || true` to die"
+            echo "waiting for $pid to die"
             sleep 1
         done
     done
