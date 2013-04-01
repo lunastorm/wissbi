@@ -127,11 +127,12 @@ status() {
     retval=0
     for pidfile in `ls $WISSBI_FILTER_PID_PREFIX-*.pid 2>/dev/null`
     do
-        if kill -0 `cat $pidfile` 2>/dev/null
+        pid=`cat $pidfile`
+        if [ -n "$pid" ] && [ -e /proc/$pid ]
         then
-            echo "$pidfile (`cat $pidfile`) is running"
+            echo "$pidfile ($pid) is running"
         else
-            echo "$pidfile (`cat $pidfile`) is not running"
+            echo "$pidfile ($pid) is not running"
             retval=1
         fi
     done
