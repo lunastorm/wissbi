@@ -43,6 +43,6 @@ for cluster_name in clusters:
     print '"%s" [shape=record, label="{%s | {%s}}"];' % (cluster_name, cluster_name, "|".join(cluster))
 
 for link in links:
-    print '%s -> %s;' % link
+    print '%s -> %s [arrowhead = none];' % link
 
 print "}"
