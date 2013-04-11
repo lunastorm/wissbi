@@ -1,0 +1,30 @@
+#!/bin/sh
+
+rules=`python -c "\
+from ConfigParser import ConfigParser;\
+conf = ConfigParser();\
+conf.read('/etc/wissbi.conf');\
+d = dict(conf.items('forwarderd'));\
+print ' '.join([src + ':' + d[src] for src in d]);"`
+
+action=$1
+for rule in $rules
+do
+    src=`echo $rule | cut -d ":" -f 1`
+    dst=`echo $rule | cut -d ":" -f 2`
+    prefix=`echo "$src-$dst" | tr '/' '#'`
+
+script=`cat <<EOF
+WISSBI_FILTER_COUNT="1"
+WISSBI_FILTER_CMD="cat"
+WISSBI_FILTER_SOURCE="$src"
+WISSBI_FILTER_SINK="$dst"
+WISSBI_FILTER_LOG_PREFIX="/tmp/wsbforwarderd-$prefix"
+WISSBI_FILTER_PID_PREFIX="/tmp/wsbforwarderd-$prefix"
+. /usr/bin/wissbi_filter_template.sh
+EOF`
+    echo "$script" > /tmp/$prefix
+    chmod 755 /tmp/$prefix
+    /tmp/$prefix $action
+done
+
