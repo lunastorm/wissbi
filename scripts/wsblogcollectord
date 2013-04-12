@@ -1,0 +1,17 @@
+#!/bin/sh
+
+WISSBI_FILTER_COUNT="1"
+
+if [ -e "./wissbi_log_collector.sh" ]
+then
+    WISSBI_FILTER_CMD="./wissbi_log_collector.sh"
+else
+    WISSBI_FILTER_CMD="/usr/bin/wissbi_log_collector.sh"
+fi
+
+WISSBI_FILTER_SOURCE=""
+WISSBI_FILTER_SINK="wissbi.log"
+WISSBI_FILTER_LOG_PREFIX="/tmp/wsblogcollectord"
+WISSBI_FILTER_PID_PREFIX="/tmp/wsblogcollectord"
+
+. /usr/bin/wissbi_filter_template.sh

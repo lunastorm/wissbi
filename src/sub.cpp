@@ -9,6 +9,7 @@
 #include <set>
 #include "msg_filter.hpp"
 #include "io_policy/line.hpp"
+#include "io_policy/length.hpp"
 #include "io_policy/sysv_mq.hpp"
 #include "io_policy/tcp.hpp"
 #include "sub_entry.hpp"
@@ -23,15 +24,8 @@ void exit_signal_handler(int signum) {
     run = false;
 }
 
-int main(int argc, char* argv[]){
-    signal(SIGINT, exit_signal_handler);
-    signal(SIGTERM, exit_signal_handler);
-
-    if(getenv("WISSBI_PID_FILE") != NULL) {
-        ofstream ofs(getenv("WISSBI_PID_FILE"));
-        ofs << getpid() << endl;
-    }
-
+template<class OutputWriter>
+void run_sub(const std::string& src) {
     int serv = socket(AF_INET, SOCK_STREAM, 0);
     int opts;
     opts = fcntl(serv, F_GETFL);
@@ -41,11 +35,11 @@ int main(int argc, char* argv[]){
     util::ConnectStringToSockaddr("0.0.0.0:0", reinterpret_cast<sockaddr_in*>(&serv_addr));
     if(-1 == ::bind(serv, &serv_addr, sizeof(serv_addr))) {
         cerr << "bind error" << endl;
-        return -1;
+        throw std::runtime_error("bind error");
     }
     if(-1 == listen(serv, 10)) {
         cerr << "listen error" << endl;
-        return -1;
+        throw std::runtime_error("listen error");
     }
     socklen_t len = sizeof(serv_addr);;
     getsockname(serv, &serv_addr, &len);
@@ -54,9 +48,9 @@ int main(int argc, char* argv[]){
     ostringstream tmp;
     tmp << util::GetHostIP() << ":" << ntohs(((sockaddr_in*)&serv_addr)->sin_port);
     
-    SubEntry sub_entry(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", argv[1], tmp.str());
+    SubEntry sub_entry(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", src, tmp.str());
 
-    MsgFilter<io_policy::SysvMq, io_policy::Line> output_writer;
+    OutputWriter output_writer;
     output_writer.mq_init("");
     output_writer.auto_flush();
     thread* output_th = new thread([&output_writer](){
@@ -95,6 +89,35 @@ int main(int argc, char* argv[]){
             }).detach();
         }
         sub_entry.renew();
+    }
+}
+
+int main(int argc, char* argv[]){
+    signal(SIGINT, exit_signal_handler);
+    signal(SIGTERM, exit_signal_handler);
+
+    std::string src(argv[1]);
+
+    if(getenv("WISSBI_PID_FILE") != NULL) {
+        ofstream ofs(getenv("WISSBI_PID_FILE"));
+        ofs << getpid() << endl;
+    }
+
+    char* msg_format = getenv("WISSBI_MESSAGE_FORMAT");
+    if(msg_format) {
+        if(std::string(msg_format) == "line") {
+            run_sub<MsgFilter<io_policy::SysvMq, io_policy::Line>>(src);
+        }
+        else if(std::string(msg_format) == "length") {
+            run_sub<MsgFilter<io_policy::SysvMq, io_policy::Length>>(src);
+        }
+        else {
+            std::cerr << "unknown message format: " << msg_format << std::endl;
+            return 1;
+        }
+    }
+    else {
+        run_sub<MsgFilter<io_policy::SysvMq, io_policy::Line>>(src);
     }
 
     return 0;

@@ -1,7 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
 mkdir -p /var/lib/wissbi
 mkdir -p /var/lib/wissbi-backup
 mkdir -p /var/run/wissbi
 mkdir -p /var/log/wissbi
+mkdir -p /var/lib/wissbi/sub
+chmod 777 /var/lib/wissbi/sub
 exit 0

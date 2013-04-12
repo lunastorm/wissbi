@@ -2,6 +2,9 @@
 
 ##### You can copy and modify this script and set the varaibles to create a wissbi filter as a daemon easily #####
 
+# Run the program as the designated user, requires root previlege, leave it blank to run as the current user
+WISSBI_RUN_AS=""
+
 # How many filter instances will be run in parallel
 WISSBI_FILTER_COUNT="1"
 

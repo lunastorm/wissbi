@@ -46,6 +46,10 @@ install: build
 	cp -f scripts/wdb $(INSTALL_PREFIX)/usr/bin
 	cp -f scripts/wsbmetric.py $(INSTALL_PREFIX)/usr/bin
 	cp -f scripts/wsbmetricd $(INSTALL_PREFIX)/etc/init.d
+	cp -f scripts/wsblogcollectord $(INSTALL_PREFIX)/etc/init.d
+	cp -f scripts/wissbi_log_collector.sh $(INSTALL_PREFIX)/usr/bin
+	cp -f scripts/wissbi_log_transformer.py $(INSTALL_PREFIX)/usr/bin
+	cp -f scripts/wsbforwarderd $(INSTALL_PREFIX)/etc/init.d
 	cp -rf doc/* $(INSTALL_PREFIX)/usr/share/doc/wissbi
 
 .PHONY:	deb

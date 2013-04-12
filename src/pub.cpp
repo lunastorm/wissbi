@@ -8,6 +8,7 @@
 #include <atomic>
 #include "connector.hpp"
 #include "io_policy/line.hpp"
+#include "io_policy/length.hpp"
 #include "metric_reporter.hpp"
 
 using namespace wissbi;
@@ -26,32 +27,17 @@ void sleep_while(std::function<bool()> cond, int second) {
     }
 }
 
-typedef MsgFilter<io_policy::Line, io_policy::Tee<io_policy::SysvMq>> StdInputFilter;
+typedef MsgFilter<io_policy::Line, io_policy::Tee<io_policy::SysvMq>> StdLineInputFilter;
+typedef MsgFilter<io_policy::Length, io_policy::Tee<io_policy::SysvMq>> StdLengthInputFilter;
 typedef MsgFilter<io_policy::String, io_policy::Tee<io_policy::SysvMq>> MetricInputFilter;
 
-int main(int argc, char* argv[]) {
-    std::string dest(argv[1]);
-    signal(SIGINT, exit_signal_handler);
-    signal(SIGTERM, exit_signal_handler);
-    signal(SIGPIPE, exit_signal_handler);
-
-    if(getenv("WISSBI_PID_FILE") != NULL) {
-        ofstream ofs(getenv("WISSBI_PID_FILE"));
-        ofs << getpid() << endl;
-    }
-
-    int wait_timeout_sec = 1;
-    char* wait_timeout_str = getenv("WISSBI_PUB_WAIT_TIMEOUT_SEC");
-    if(wait_timeout_str) {
-        istringstream iss(wait_timeout_str);
-        iss >> wait_timeout_sec;
-    }
-
-    list<FilterMetric> metric_list;
+template<class InputFilter>
+void run(const std::string& dest, int wait_timeout_sec) {
     atomic_uint pending_counter(0);
+    list<FilterMetric> metric_list;
 
-    StdInputFilter input_filter;
-    Connector<StdInputFilter> connector(dest, input_filter, metric_list, pending_counter);
+    InputFilter input_filter;
+    Connector<InputFilter> connector(dest, input_filter, metric_list, pending_counter);
 
     MetricInputFilter metric_input_filter;
     list<FilterMetric> dummy_metric_list;
@@ -82,6 +68,42 @@ int main(int argc, char* argv[]) {
     sleep_while([dest, &pending_counter]{ return pending_counter > 0; }, wait_timeout_sec);
 
     metric_reporter.Report();
+}
+
+int main(int argc, char* argv[]) {
+    std::string dest(argv[1]);
+    signal(SIGINT, exit_signal_handler);
+    signal(SIGTERM, exit_signal_handler);
+    signal(SIGPIPE, exit_signal_handler);
+
+    if(getenv("WISSBI_PID_FILE") != NULL) {
+        ofstream ofs(getenv("WISSBI_PID_FILE"));
+        ofs << getpid() << endl;
+    }
+
+    int wait_timeout_sec = 1;
+    char* wait_timeout_str = getenv("WISSBI_PUB_WAIT_TIMEOUT_SEC");
+    if(wait_timeout_str) {
+        istringstream iss(wait_timeout_str);
+        iss >> wait_timeout_sec;
+    }
+
+    char* msg_format = getenv("WISSBI_MESSAGE_FORMAT");
+    if(msg_format) {
+        if(std::string(msg_format) == "line") {
+            run<StdLineInputFilter>(dest, wait_timeout_sec);
+        }
+        else if(std::string(msg_format) == "length") {
+            run<StdLengthInputFilter>(dest, wait_timeout_sec);
+        }
+        else {
+            std::cerr << "unknown message format: " << msg_format << std::endl;
+            return 1;
+        }
+    }
+    else {
+        run<StdLineInputFilter>(dest, wait_timeout_sec);
+    }
 
 	return 0;
 }
