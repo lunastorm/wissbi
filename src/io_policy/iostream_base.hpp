@@ -10,14 +10,7 @@ namespace io_policy {
 class IOStreamBase
 {
     public:
-    IOStreamBase() : is_ptr_(&std::cin), os_ptr_(&std::cout) {
-        std::thread([this]{
-            while(true) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                this->os_ptr_->flush();
-            }
-        }).detach();
-    }
+    IOStreamBase() : is_ptr_(&std::cin), os_ptr_(&std::cout) {}
 
     void set_istream(std::istream *is_ptr) {
         is_ptr_ = is_ptr;
@@ -28,10 +21,10 @@ class IOStreamBase
     }
 
     void auto_flush() {
-        std::thread([&os_ptr_]{
+        std::thread([this]{
             while(true) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                os_ptr_->flush();
+                this->os_ptr_->flush();
             }
         }).detach();
     }
