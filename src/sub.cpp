@@ -81,6 +81,7 @@ void run_sub(const std::string& src) {
 int main(int argc, char* argv[]){
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
+    signal(SIGPIPE, exit_signal_handler);
 
     std::string src(argv[1]);
 
