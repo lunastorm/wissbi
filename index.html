@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <title>Wissbi by lunastorm</title>
+  </head>
+
+  <body>
+
+    <header>
+      <div class="container">
+        <h1>Wissbi</h1>
+        <h2>wissbi</h2>
+
+        <section id="downloads">
+          <a href="https://github.com/lunastorm/wissbi/zipball/master" class="btn">Download as .zip</a>
+          <a href="https://github.com/lunastorm/wissbi/tarball/master" class="btn">Download as .tar.gz</a>
+          <a href="https://github.com/lunastorm/wissbi" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+        </section>
+      </div>
+    </header>
+
+    <div class="container">
+      <section id="main_content">
+        <h1>Tested Build Environment</h1>
+
+<ul>
+<li>Ubuntu 12.04 with gcc 4.6.3 and cmake 2.8.7</li>
+</ul><h1>Build Steps</h1>
+
+<h2>Binaries</h2>
+
+<div class="highlight"><pre>make
+</pre></div>
+
+<p>The output binaries will be put under tmp/build</p>
+
+<h2>Testing</h2>
+
+<div class="highlight"><pre>make <span class="nb">test</span>
+</pre></div>
+
+<p>The JUnit testing result compatible xml files will be put under output/test</p>
+
+<h2>Debian Package</h2>
+
+<div class="highlight"><pre>make deb
+</pre></div>
+
+<p>The debian package will be put under output/artifacts</p>
+
+<h2>Installation</h2>
+
+<ul>
+<li>You can run dpkg -i [debian package name] to install it to system or</li>
+<li>simply run make install</li>
+</ul><h1>Usage</h1>
+
+<div class="highlight"><pre>wissbi-sub <span class="nb">test</span>
+</pre></div>
+
+<p>This will launch a subscriber listening messages from a source named "test", and write the messages to stdout.</p>
+
+<p>Now you can start a new terminal session and execute:</p>
+
+<div class="highlight"><pre><span class="nb">echo</span> <span class="s2">"hello world"</span> | wissbi-pub <span class="nb">test</span>
+</pre></div>
+
+<p>You can see the message "hello world" appeared in the subscriber's terminal.</p>
+
+<p>See <a href="https://github.com/lunastorm/wissbi/wiki/Usage">https://github.com/lunastorm/wissbi/wiki/Usage</a> for detailed usage guide.</p>
+
+<h1>Administration</h1>
+
+<p>See <a href="https://github.com/lunastorm/wissbi/wiki/Administration">https://github.com/lunastorm/wissbi/wiki/Administration</a> for detailed administration guide.</p>
+      </section>
+    </div>
+
+    
+  </body>
+</html>
