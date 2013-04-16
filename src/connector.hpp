@@ -50,6 +50,13 @@ private:
                 if(!filter.ExistsBranch(real_dest)) {
                     std::shared_ptr<io_policy::SysvMq> mq_ptr(new io_policy::SysvMq());
                     mq_ptr->mq_init(real_dest);
+                    char* drop_option = getenv("WISSBI_DROP_MESSAGE");
+                    if(drop_option && std::string(drop_option) == "no") {
+                        mq_ptr->set_drop(false);
+                    }
+                    else {
+                        mq_ptr->set_drop(true);
+                    }
                     filter.AddBranch(real_dest, mq_ptr);
                 }
 

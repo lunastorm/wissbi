@@ -44,10 +44,15 @@ void run(const std::string& dest, int wait_timeout_sec) {
     Connector<MetricInputFilter> metric_connector("wissbi.metric", metric_input_filter, dummy_metric_list, dummy_counter);
     MetricReporter metric_reporter(metric_list, metric_input_filter, "enqueue");
 
-    thread([&metric_reporter]{
+    list<FilterMetric> drop_metric_list;
+    drop_metric_list.push_back(FilterMetric(util::EscapeSubFolderPath(dest)));
+    MetricReporter drop_metric_reporter(drop_metric_list, metric_input_filter, "drop");
+
+    thread([&metric_reporter, &drop_metric_reporter]{
         while(true) {
             this_thread::sleep_for(chrono::seconds(1));
             metric_reporter.Report();
+            drop_metric_reporter.Report();
         }
     }).detach();
 
@@ -55,9 +60,10 @@ void run(const std::string& dest, int wait_timeout_sec) {
         sleep_while([&input_filter]{ return input_filter.GetBranchCount() == 0; }, wait_timeout_sec);
         return true;
     });
-    input_filter.set_post_filter_func([dest, &input_filter, &pending_counter](bool filter_result, MsgBuf& msgbuf){
+    input_filter.set_post_filter_func([dest, &input_filter, &pending_counter, &drop_metric_list](bool filter_result, MsgBuf& msgbuf){
         if(filter_result == true) {
             pending_counter += input_filter.GetLastTeeCount();
+            drop_metric_list.begin()->last_processed += input_filter.GetLastFailedCount();
         }
         return filter_result;
     });

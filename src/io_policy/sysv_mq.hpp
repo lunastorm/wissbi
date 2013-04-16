@@ -44,7 +44,7 @@ class SysvMq {
 
     bool Put(const MsgBuf &msg) {
         const_cast<MsgBuf&>(msg).mtype = 1;
-        return 0 == msgsnd(mqid_, &msg, msg.len, 0);
+        return 0 == msgsnd(mqid_, &msg, msg.len, put_flag_);
     }
 
     bool Get(MsgBuf *msg_ptr) {
@@ -79,11 +79,16 @@ class SysvMq {
         cleanup_ = cleanup;
     }
 
+    void set_drop(bool drop) {
+        put_flag_ = (drop ? IPC_NOWAIT : 0);
+    }
+
     private:
     int mqid_;
     key_t key_;
     std::string key_file_;
     bool cleanup_;
+    int put_flag_;
 };
 
 }
