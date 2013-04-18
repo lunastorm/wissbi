@@ -77,6 +77,10 @@ void run(const std::string& dest, int wait_timeout_sec) {
 }
 
 int main(int argc, char* argv[]) {
+    if(argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " DESTINATION_NAME" << std::endl;
+        return 1;
+    }
     std::string dest(argv[1]);
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);

@@ -80,6 +80,10 @@ void run_sub(const std::string& src) {
 }
 
 int main(int argc, char* argv[]){
+    if(argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " SOURCE_NAME" << std::endl;
+        return 1;
+    }
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
     signal(SIGPIPE, exit_signal_handler);
