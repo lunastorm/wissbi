@@ -9,6 +9,7 @@
 #include "io_policy/line.hpp"
 #include "io_policy/length.hpp"
 #include "metric_reporter.hpp"
+#include "logger.hpp"
 
 using namespace wissbi;
 using namespace std; 
@@ -102,7 +103,7 @@ int main(int argc, char* argv[]) {
             run<StdLengthInputFilter>(dest, wait_timeout_sec);
         }
         else {
-            std::cerr << "unknown message format: " << msg_format << std::endl;
+            logger::log("unknown message format: {}", msg_format);
             return 1;
         }
     }

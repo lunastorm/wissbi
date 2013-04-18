@@ -3,6 +3,7 @@
 
 #include "msg_buf.hpp"
 #include "util.hpp"
+#include "logger.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdexcept>
@@ -71,7 +72,10 @@ class TCP {
         while(size_write < size) {
             ssize_t n = write(blocking_fd, buf + size_write, size - size_write);
             if(n == -1) {
-                std::cerr<<"write error: " << strerror(errno) << std::endl;
+                sockaddr addr;
+                socklen_t addrlen = sizeof(addr);
+                getsockname(blocking_fd, &addr, &addrlen);
+                logger::log("write error to {}: {}", util::SockaddrToConnectString(reinterpret_cast<const sockaddr_in&>(addr)), strerror(errno));
                 return false;
             }
             size_write += n;
