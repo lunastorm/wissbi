@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <sstream>
+#include <stdexcept>
 
 namespace wissbi {
 namespace io_policy {
@@ -38,7 +39,7 @@ class SysvMq {
         key_ = ftok(key_file_.c_str(), 0);
         mqid_ = msgget(key_, IPC_CREAT | S_IRUSR | S_IWUSR);
         if(mqid_ < 0) {
-            throw "cannot acquire mq: " + std::string(strerror(errno));
+            throw std::runtime_error("cannot acquire mq: " + std::string(strerror(errno)));
         }
     }
 
