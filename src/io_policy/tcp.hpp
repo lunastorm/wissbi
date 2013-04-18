@@ -2,8 +2,10 @@
 #define WISSBI_IO_POLICY_TCP_HPP_
 
 #include "msg_buf.hpp"
+#include "util.hpp"
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <stdexcept>
 
 namespace wissbi {
 namespace io_policy {
@@ -42,7 +44,7 @@ class TCP {
 
     void Connect(const sockaddr *addr) {
         if(-1 == connect(sock_, addr, sizeof(*addr))) {
-            throw "cannot connect";
+            throw std::runtime_error(std::string("cannot connect to ") + util::SockaddrToConnectString(*reinterpret_cast<const sockaddr_in*>(addr)));
         }
     }
 

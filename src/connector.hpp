@@ -14,6 +14,7 @@
 #include "io_policy/tcp.hpp"
 #include "util.hpp"
 #include "filter_metric.hpp"
+#include "logger.hpp"
 
 namespace wissbi {
 
@@ -77,8 +78,8 @@ private:
                     try {
                         producerFilter.Connect(&sock_addr);
                     }
-                    catch (...) {
-                        std::cerr << "error connecting" << std::endl;
+                    catch (std::exception& e) {
+                        logger::log("error connecting: {}", e.what());
                         producer_set.erase(conn_str);
                         return;
                     }

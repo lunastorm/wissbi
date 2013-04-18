@@ -62,8 +62,7 @@ void run_sub(const std::string& src) {
         socklen_t len = sizeof(other_addr);
         int res = accept(serv, &other_addr, &len);
         if(res > 0){
-            auto addr_ptr = reinterpret_cast<sockaddr_in*>(&other_addr);
-            logger::log("wissbi-pub connected from {}:{}", inet_ntoa(addr_ptr->sin_addr), ntohs(addr_ptr->sin_port));
+            logger::log("wissbi-pub connected from {}", util::SockaddrToConnectString(reinterpret_cast<const sockaddr_in&>(other_addr)));
             struct timeval tv;
             tv.tv_sec = 0;
             tv.tv_usec = 0;

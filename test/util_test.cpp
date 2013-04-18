@@ -9,6 +9,14 @@ TEST(UtilTest, TestConnectStringToSockaddr) {
     EXPECT_EQ(AF_INET, in_addr.sin_family);
 }
 
+TEST(UtilTest, TestSockaddrToConnectString) {
+    sockaddr_in in_addr;
+    in_addr.sin_addr.s_addr = htonl(2130706433);
+    in_addr.sin_port = htons(55666);
+    std::string res = wissbi::util::SockaddrToConnectString(in_addr);
+    EXPECT_STREQ("127.0.0.1:55666", res.c_str());
+}
+
 TEST(UtilTest, TestGetHostIP) {
     FILE *f = popen("hostname -i", "r");
     char buf[20];
