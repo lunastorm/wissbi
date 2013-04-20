@@ -22,17 +22,17 @@ include_directories(${GMOCK_INCLUDE_DIR})
 include_directories(${GTEST_INCLUDE_DIR})
 
 add_executable(runUnitTests
-    sub_entry_test.cpp
-    sub_dir_test.cpp
-    util_test.cpp
-    line_io_policy_test.cpp
-    msg_filter_test.cpp
-    length_io_policy_test.cpp
-    sysv_mq_io_policy_test.cpp
-    tcp_io_policy_test.cpp
-    tee_io_policy_test.cpp
-    string_io_policy_test.cpp
-    metric_reporter_test.cpp
+    unit/sub_entry_test.cpp
+    unit/sub_dir_test.cpp
+    unit/util_test.cpp
+    unit/line_io_policy_test.cpp
+    unit/msg_filter_test.cpp
+    unit/length_io_policy_test.cpp
+    unit/sysv_mq_io_policy_test.cpp
+    unit/tcp_io_policy_test.cpp
+    unit/tee_io_policy_test.cpp
+    unit/string_io_policy_test.cpp
+    unit/metric_reporter_test.cpp
 )
 
 target_link_libraries(runUnitTests ${GTEST_LIBRARY} ${GTEST_MAIN_LIBRARY} ${GMOCK_LIBRARY} pthread)
