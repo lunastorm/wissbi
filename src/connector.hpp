@@ -14,6 +14,7 @@
 #include "io_policy/tcp.hpp"
 #include "util.hpp"
 #include "filter_metric.hpp"
+#include "logger.hpp"
 
 namespace wissbi {
 
@@ -50,6 +51,13 @@ private:
                 if(!filter.ExistsBranch(real_dest)) {
                     std::shared_ptr<io_policy::SysvMq> mq_ptr(new io_policy::SysvMq());
                     mq_ptr->mq_init(real_dest);
+                    char* drop_option = getenv("WISSBI_DROP_MESSAGE");
+                    if(drop_option && std::string(drop_option) == "no") {
+                        mq_ptr->set_drop(false);
+                    }
+                    else {
+                        mq_ptr->set_drop(true);
+                    }
                     filter.AddBranch(real_dest, mq_ptr);
                 }
 
@@ -70,8 +78,8 @@ private:
                     try {
                         producerFilter.Connect(&sock_addr);
                     }
-                    catch (...) {
-                        std::cerr << "error connecting" << std::endl;
+                    catch (std::exception& e) {
+                        logger::log("error connecting: {}", e.what());
                         producer_set.erase(conn_str);
                         return;
                     }

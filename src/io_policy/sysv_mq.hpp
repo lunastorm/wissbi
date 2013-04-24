@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <sstream>
+#include <stdexcept>
 
 namespace wissbi {
 namespace io_policy {
@@ -38,13 +39,13 @@ class SysvMq {
         key_ = ftok(key_file_.c_str(), 0);
         mqid_ = msgget(key_, IPC_CREAT | S_IRUSR | S_IWUSR);
         if(mqid_ < 0) {
-            throw "cannot acquire mq: " + std::string(strerror(errno));
+            throw std::runtime_error("cannot acquire mq: " + std::string(strerror(errno)));
         }
     }
 
     bool Put(const MsgBuf &msg) {
         const_cast<MsgBuf&>(msg).mtype = 1;
-        return 0 == msgsnd(mqid_, &msg, msg.len, 0);
+        return 0 == msgsnd(mqid_, &msg, msg.len, put_flag_);
     }
 
     bool Get(MsgBuf *msg_ptr) {
@@ -79,11 +80,16 @@ class SysvMq {
         cleanup_ = cleanup;
     }
 
+    void set_drop(bool drop) {
+        put_flag_ = (drop ? IPC_NOWAIT : 0);
+    }
+
     private:
     int mqid_;
     key_t key_;
     std::string key_file_;
     bool cleanup_;
+    int put_flag_;
 };
 
 }

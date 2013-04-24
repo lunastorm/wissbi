@@ -9,6 +9,7 @@
 #include "io_policy/line.hpp"
 #include "io_policy/length.hpp"
 #include "metric_reporter.hpp"
+#include "logger.hpp"
 
 using namespace wissbi;
 using namespace std; 
@@ -44,10 +45,15 @@ void run(const std::string& dest, int wait_timeout_sec) {
     Connector<MetricInputFilter> metric_connector("wissbi.metric", metric_input_filter, dummy_metric_list, dummy_counter);
     MetricReporter metric_reporter(metric_list, metric_input_filter, "enqueue");
 
-    thread([&metric_reporter]{
+    list<FilterMetric> drop_metric_list;
+    drop_metric_list.push_back(FilterMetric(util::EscapeSubFolderPath(dest)));
+    MetricReporter drop_metric_reporter(drop_metric_list, metric_input_filter, "drop");
+
+    thread([&metric_reporter, &drop_metric_reporter]{
         while(true) {
             this_thread::sleep_for(chrono::seconds(1));
             metric_reporter.Report();
+            drop_metric_reporter.Report();
         }
     }).detach();
 
@@ -55,9 +61,10 @@ void run(const std::string& dest, int wait_timeout_sec) {
         sleep_while([&input_filter]{ return input_filter.GetBranchCount() == 0; }, wait_timeout_sec);
         return true;
     });
-    input_filter.set_post_filter_func([dest, &input_filter, &pending_counter](bool filter_result, MsgBuf& msgbuf){
+    input_filter.set_post_filter_func([dest, &input_filter, &pending_counter, &drop_metric_list](bool filter_result, MsgBuf& msgbuf){
         if(filter_result == true) {
             pending_counter += input_filter.GetLastTeeCount();
+            drop_metric_list.begin()->last_processed += input_filter.GetLastFailedCount();
         }
         return filter_result;
     });
@@ -70,6 +77,10 @@ void run(const std::string& dest, int wait_timeout_sec) {
 }
 
 int main(int argc, char* argv[]) {
+    if(argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " DESTINATION_NAME" << std::endl;
+        return 1;
+    }
     std::string dest(argv[1]);
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
@@ -96,7 +107,7 @@ int main(int argc, char* argv[]) {
             run<StdLengthInputFilter>(dest, wait_timeout_sec);
         }
         else {
-            std::cerr << "unknown message format: " << msg_format << std::endl;
+            logger::log("unknown message format: {}", msg_format);
             return 1;
         }
     }

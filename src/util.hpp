@@ -26,6 +26,14 @@ static void ConnectStringToSockaddr(const std::string& conn_str, sockaddr_in* ad
     addr_ptr->sin_family = AF_INET;
 }
 
+static std::string SockaddrToConnectString(const sockaddr_in& addr) {
+    std::ostringstream oss;
+    oss << inet_ntoa(addr.sin_addr);
+    oss << ":";
+    oss << ntohs(addr.sin_port);
+    return oss.str();
+}
+
 static std::string GetHostIP() {
     char buf[256];
     gethostname(buf, 256);

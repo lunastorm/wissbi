@@ -19,9 +19,12 @@ class Tee {
 
     bool Put(const MsgBuf &msg) {
         last_tee_count_ = 0;
+        last_failed_count_ = 0;
         for(auto kv : branch_map_) {
-            kv.second->Put(msg);
             ++last_tee_count_;
+            if(!kv.second->Put(msg)) {
+                ++last_failed_count_;
+            }
         }
         return true;
     }
@@ -49,9 +52,14 @@ class Tee {
         return last_tee_count_;
     }
 
+    int GetLastFailedCount() {
+        return last_failed_count_;
+    }
+
     private:
     std::unordered_map<std::string, std::shared_ptr<policy>> branch_map_;
     int last_tee_count_;
+    int last_failed_count_;
 };
 
 }

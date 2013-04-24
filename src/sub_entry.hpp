@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <string>
+#include <stdexcept>
 
 namespace wissbi {
 
@@ -31,7 +32,7 @@ class SubEntry {
     void renew_() const {
         system(("mkdir " + meta_dir_ + "/sub/" + queue_name_ + " 2>/dev/null").c_str());
         if(system(("touch " + node_name_).c_str()) != 0) {
-            throw std::string("Cannot create subscriber entry at ") + node_name_;
+            throw std::runtime_error(std::string("Cannot create subscriber entry at ") + node_name_);
         }
     }
 

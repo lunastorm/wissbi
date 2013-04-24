@@ -12,6 +12,7 @@
 #include "io_policy/tcp.hpp"
 #include "sub_entry.hpp"
 #include "util.hpp"
+#include "logger.hpp"
 
 using namespace std;
 using namespace wissbi;
@@ -28,16 +29,16 @@ void run_sub(const std::string& src) {
     sockaddr serv_addr;
     util::ConnectStringToSockaddr("0.0.0.0:0", reinterpret_cast<sockaddr_in*>(&serv_addr));
     if(-1 == ::bind(serv, &serv_addr, sizeof(serv_addr))) {
-        cerr << "bind error" << endl;
+        logger::log("bind error");
         throw std::runtime_error("bind error");
     }
     if(-1 == listen(serv, 10)) {
-        cerr << "listen error" << endl;
+        logger::log("listen error");
         throw std::runtime_error("listen error");
     }
     socklen_t len = sizeof(serv_addr);;
     getsockname(serv, &serv_addr, &len);
-    cerr <<"after listen port "<<ntohs(((sockaddr_in*)&serv_addr)->sin_port)<<endl;
+    logger::log("wissbi-sub is listening on port {}", ntohs(((sockaddr_in*)&serv_addr)->sin_port));
 
     ostringstream tmp;
     tmp << util::GetHostIP() << ":" << ntohs(((sockaddr_in*)&serv_addr)->sin_port);
@@ -58,10 +59,10 @@ void run_sub(const std::string& src) {
   
     while(run) {
         sockaddr other_addr;
-        socklen_t len;
+        socklen_t len = sizeof(other_addr);
         int res = accept(serv, &other_addr, &len);
         if(res > 0){
-            cerr << "connected " << res << endl;
+            logger::log("wissbi-pub connected from {}", util::SockaddrToConnectString(reinterpret_cast<const sockaddr_in&>(other_addr)));
             struct timeval tv;
             tv.tv_sec = 0;
             tv.tv_usec = 0;
@@ -79,6 +80,10 @@ void run_sub(const std::string& src) {
 }
 
 int main(int argc, char* argv[]){
+    if(argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " SOURCE_NAME" << std::endl;
+        return 1;
+    }
     signal(SIGINT, exit_signal_handler);
     signal(SIGTERM, exit_signal_handler);
     signal(SIGPIPE, exit_signal_handler);
@@ -99,14 +104,14 @@ int main(int argc, char* argv[]){
             run_sub<MsgFilter<io_policy::SysvMq, io_policy::Length>>(src);
         }
         else {
-            std::cerr << "unknown message format: " << msg_format << std::endl;
+            logger::log("unknown message format: {}", msg_format);
             return 1;
         }
     }
     else {
         run_sub<MsgFilter<io_policy::SysvMq, io_policy::Line>>(src);
     }
-
+    logger::log("wissbi-sub exited normally");
     return 0;
 }
 
