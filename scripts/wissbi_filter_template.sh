@@ -47,7 +47,7 @@ then
     exit 1
 fi
 
-FIFO_SINKS=`set | grep -E "WISSBI_FILTER_SINK[0-9]+"`
+FIFO_SINKS=`set | grep -E "WISSBI_FILTER_SINK[0-9]+" || true`
 
 start() {
     if [ "$WISSBI_RUN_AS" = "`whoami`" ]
