@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <string.h>
+#include <unistd.h>
 #include <string>
 #include <sstream>
 #include <algorithm>
