@@ -126,6 +126,7 @@ stop() {
             echo "waiting for $pid to die"
             sleep 1
         done
+        rm -f $pidfile
     done
     echo $0 is stopped
 }
