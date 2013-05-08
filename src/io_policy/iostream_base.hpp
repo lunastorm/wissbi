@@ -22,7 +22,7 @@ class IOStreamBase
     }
 
     void auto_flush() {
-        std::thread([&os_ptr_]{
+        std::thread([this]{
             while(true) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 os_ptr_->flush();

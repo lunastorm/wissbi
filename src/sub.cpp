@@ -67,6 +67,8 @@ void run_sub(const std::string& src) {
             tv.tv_sec = 0;
             tv.tv_usec = 0;
             setsockopt(res, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)); 
+            struct linger lo = {1, 0};
+            setsockopt(res, SOL_SOCKET, SO_LINGER, &lo, sizeof(lo));
             thread([res]{
                 MsgFilter<io_policy::TCP, io_policy::SysvMq> filter;
                 filter.mq_init("");
