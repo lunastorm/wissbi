@@ -46,7 +46,7 @@ void run(const std::string& dest, int wait_timeout_sec) {
     MetricReporter metric_reporter(metric_list, metric_input_filter, "enqueue");
 
     list<FilterMetric> drop_metric_list;
-    drop_metric_list.push_back(FilterMetric(util::EscapeSubFolderPath(dest)));
+    drop_metric_list.push_back(FilterMetric(dest));
     MetricReporter drop_metric_reporter(drop_metric_list, metric_input_filter, "drop");
 
     thread([&metric_reporter, &drop_metric_reporter]{
