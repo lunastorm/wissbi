@@ -47,6 +47,7 @@ then
     exit 1
 fi
 
+FIFO_SINKS=`set | grep -E "WISSBI_FILTER_SINK[0-9]+" || true`
 
 start() {
     if [ "$WISSBI_RUN_AS" = "`whoami`" ]
@@ -58,6 +59,7 @@ start() {
     for i in `seq 1 $WISSBI_FILTER_COUNT`
     do
         WISSBI_RESOLVED_FILTER_CMD=`echo "$WISSBI_FILTER_CMD" | sed -e "s/\\$i/$i/g"`
+        WISSBI_RESOLVED_FIFO_SINKS=`echo "$FIFO_SINKS" | sed -e "s/\\$i/$i/g"`
         if [ -n "$WISSBI_DEBUG_DUMP" ]
         then
             WISSBI_DUMP_NAME=$WISSBI_DEBUG_DUMP-$i.dump
@@ -68,6 +70,16 @@ start() {
         FIFO=$FIFO_DIR/fifo
         mkfifo $FIFO
         chown -R $WISSBI_RUN_AS $FIFO_DIR
+
+        for FIFO_SINK in $FIFO_SINKS
+        do
+            FIFO_SINK=`echo $FIFO_SINK | sed -e "s/.*'\(.*\)'/\1/"`
+            EXTRA_FIFO=`echo $FIFO_SINK | cut -d ':' -f 1`
+            EXTRA_SINK=`echo $FIFO_SINK | cut -d ':' -f 2`
+            mkfifo $EXTRA_FIFO
+            chown $WISSBI_RUN_AS $EXTRA_FIFO
+            $SH_CMD -c "cat $EXTRA_FIFO | env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_PUB_BINARY $EXTRA_SINK 2>/dev/null ; rm -rf $EXTRA_FIFO" $WISSBI_RUN_AS >/dev/null 2>&1 &
+        done
 
         if [ -z "$WISSBI_FILTER_SOURCE" ]
         then
@@ -114,6 +126,7 @@ stop() {
             echo "waiting for $pid to die"
             sleep 1
         done
+        rm -f $pidfile
     done
     echo $0 is stopped
 }

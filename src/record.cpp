@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "msg_filter.hpp"
 #include "io_policy/line.hpp"
+#include "logger.hpp"
 
 using namespace wissbi;
 using namespace std;
@@ -25,7 +26,7 @@ void dump_mq_and_exit() {
     for_each(mq.cbegin(), mq.cend(), [&ofs](const string& msg) {
         ofs << msg << endl;
     });
-    cerr << "Messages dumped to " << filename_ptr << endl;
+    wissbi::logger::log("Messages dumped to {}", filename_ptr);
 }
 
 void exit_signal_handler(int signum) {

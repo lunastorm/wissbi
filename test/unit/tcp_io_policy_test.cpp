@@ -21,12 +21,12 @@ class TCPIOPolicyTest : public ::testing::Test, public TCP {
 
         ASSERT_NE(-1, ::bind(serv_, reinterpret_cast<sockaddr*>(&serv_addr_), sizeof(serv_addr_)));
         ASSERT_NE(-1, listen(serv_, 10));
-        socklen_t len;
+        socklen_t len = sizeof(serv_addr_);
         ASSERT_NE(-1, getsockname(serv_, reinterpret_cast<sockaddr*>(&serv_addr_), &len));
 
         thread([this]{
             sockaddr_in client_addr;
-            socklen_t len;
+            socklen_t len = sizeof(sockaddr_in);
             sock_ = accept(serv_, reinterpret_cast<sockaddr*>(&client_addr), &len);
             struct timeval tv;
             tv.tv_sec = 1;

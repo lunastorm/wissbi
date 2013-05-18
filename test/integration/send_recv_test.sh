@@ -20,7 +20,7 @@ testSendRandomMsg()
 
     sleep 1
     dd if=/dev/urandom bs=1M count=1 | base64 > $TMP_META_DIR/input
-    cat $TMP_META_DIR/input | env WISSBI_META_DIR=$TMP_META_DIR $BUILD_DIR/wissbi-pub foo
+    cat $TMP_META_DIR/input | env WISSBI_DROP_MESSAGE=no WISSBI_META_DIR=$TMP_META_DIR $BUILD_DIR/wissbi-pub foo
     sleep 1
     kill $SUB_PID
 
