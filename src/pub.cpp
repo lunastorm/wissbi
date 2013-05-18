@@ -41,9 +41,15 @@ void run(const std::string& dest, int wait_timeout_sec) {
 
     MetricInputFilter metric_input_filter;
     list<FilterMetric> dummy_metric_list;
-    atomic_uint dummy_counter(0);
-    Connector<MetricInputFilter> metric_connector("wissbi.metric", metric_input_filter, dummy_metric_list, dummy_counter);
+    atomic_uint metric_pending_counter(0);
+    Connector<MetricInputFilter> metric_connector("wissbi.metric", metric_input_filter, dummy_metric_list, metric_pending_counter);
     MetricReporter metric_reporter(metric_list, metric_input_filter, "enqueue");
+    metric_input_filter.set_post_filter_func([&metric_input_filter, &metric_pending_counter](bool filter_result, MsgBuf& msgbuf){
+        if(filter_result == true) {
+            ++metric_pending_counter;
+        }
+        return filter_result;
+    });
 
     list<FilterMetric> drop_metric_list;
     drop_metric_list.push_back(FilterMetric(dest));
@@ -74,6 +80,7 @@ void run(const std::string& dest, int wait_timeout_sec) {
     sleep_while([dest, &pending_counter]{ return pending_counter > 0; }, wait_timeout_sec);
 
     metric_reporter.Report();
+    sleep_while([&metric_pending_counter]{ return metric_pending_counter > 0; }, wait_timeout_sec);
 }
 
 int main(int argc, char* argv[]) {
