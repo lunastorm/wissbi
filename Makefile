@@ -18,7 +18,7 @@ tmp/3rd_party/shunit2:
 
 build:
 	mkdir -p tmp/build
-	cd tmp/build && cmake ../../ && make -j`nproc`
+	cd tmp/build && cmake -DCMAKE_BUILD_TYPE=Release ../../ && make -j`nproc`
 
 test: tmp/gmock-1.6.0 build tmp/3rd_party/shunit2
 	mkdir -p tmp/test
