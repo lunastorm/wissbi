@@ -18,7 +18,7 @@ tmp/3rd_party/shunit2:
 
 build:
 	mkdir -p tmp/build
-	cd tmp/build && cmake -DCMAKE_BUILD_TYPE=Release ../../ && make -j`nproc`
+	cd tmp/build && cmake -DCMAKE_BUILD_TYPE=Release ../../ && make -j`nproc` wissbi-pub wissbi-sub wissbi-count wissbi-record
 
 test: tmp/gmock-1.6.0 build tmp/3rd_party/shunit2
 	mkdir -p tmp/test
@@ -35,10 +35,10 @@ install: build
 	mkdir -p $(INSTALL_PREFIX)/etc/init.d
 	mkdir -p $(INSTALL_PREFIX)/etc/bash_completion.d
 	mkdir -p $(INSTALL_PREFIX)/usr/share/doc/wissbi
-	cp -f tmp/build/wissbi-pub $(INSTALL_PREFIX)/usr/bin
-	cp -f tmp/build/wissbi-sub $(INSTALL_PREFIX)/usr/bin
-	cp -f tmp/build/wissbi-count $(INSTALL_PREFIX)/usr/bin
-	cp -f tmp/build/wissbi-record $(INSTALL_PREFIX)/usr/bin
+	cp -f tmp/build/src/wissbi-pub $(INSTALL_PREFIX)/usr/bin
+	cp -f tmp/build/src/wissbi-sub $(INSTALL_PREFIX)/usr/bin
+	cp -f tmp/build/src/wissbi-count $(INSTALL_PREFIX)/usr/bin
+	cp -f tmp/build/src/wissbi-record $(INSTALL_PREFIX)/usr/bin
 	cp -f scripts/wissbi-bash_completion.sh $(INSTALL_PREFIX)/etc/bash_completion.d
 	cp -f scripts/wsbmetad.sh $(INSTALL_PREFIX)/usr/bin
 	cp -f scripts/wsbmetad $(INSTALL_PREFIX)/etc/init.d
