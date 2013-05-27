@@ -18,7 +18,7 @@ tmp/3rd_party/shunit2:
 
 build:
 	mkdir -p tmp/build
-	cd tmp/build && env CXX="/usr/bin/clang++" CXXFLAGS="-std=c++11 -stdlib=libc++" cmake ../../src && make
+	cd tmp/build && cmake ../../ && make -j`nproc`
 
 test: tmp/gmock-1.6.0 build tmp/3rd_party/shunit2
 	mkdir -p tmp/test
