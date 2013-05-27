@@ -74,13 +74,13 @@ void run_sub(const std::string& src) {
             logger::log("wissbi-pub connected from {}", util::SockaddrToConnectString(reinterpret_cast<const sockaddr_in&>(other_addr)));
             int opts;
             opts = fcntl(res, F_GETFL);
-            opts ^= O_NONBLOCK;
+            opts &= ~O_NONBLOCK;
             fcntl(res, F_SETFL, opts);
 
             struct timeval tv;
             tv.tv_sec = 0;
             tv.tv_usec = 0;
-            setsockopt(res, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)); 
+            setsockopt(res, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
             struct linger lo = {1, 0};
             setsockopt(res, SOL_SOCKET, SO_LINGER, &lo, sizeof(lo));
             thread([res]{
