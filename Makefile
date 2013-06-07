@@ -5,25 +5,21 @@ DEBBUILD_DIR	:=	tmp/wissbi-0.1-$(shell date -u "+%Y%m%d")_amd64
 
 default: build
 
-tmp/gmock-1.6.0:
-	mkdir -p tmp/
-	cp 3rd_party/gmock-1.6.0.zip tmp
-	cd tmp ; unzip gmock-1.6.0.zip
-	cd tmp/gmock-1.6.0 ; env CXX="/usr/bin/clang++" CXXFLAGS="-std=c++11 -stdlib=libc++ -DGTEST_USE_OWN_TR1_TUPLE" cmake . && make
-	rm -f tmp/gmock-1.6.0.zip
+3rd_party/gmock-1.6.0:
+	cd 3rd_party ; unzip gmock-1.6.0.zip
 
-tmp/3rd_party/shunit2:
-	mkdir -p tmp/3rd_party
-	cp -r 3rd_party/shunit2 tmp/3rd_party/
+tmp/test/3rd_party/shunit2:
+	mkdir -p tmp/test/3rd_party
+	cp -r 3rd_party/shunit2 tmp/test/3rd_party/
 
 build:
 	mkdir -p tmp/build
 	cd tmp/build && cmake -DCMAKE_BUILD_TYPE=Release ../../ && make -j`nproc` wissbi-pub wissbi-sub wissbi-count wissbi-record
 
-test: tmp/gmock-1.6.0 build tmp/3rd_party/shunit2
+test: 3rd_party/gmock-1.6.0 tmp/test/3rd_party/shunit2
 	mkdir -p tmp/test
 	mkdir -p output/test
-	cd tmp/test && env CXX="/usr/bin/clang++" CXXFLAGS="-std=c++11 -stdlib=libc++ -DGTEST_USE_OWN_TR1_TUPLE" cmake ../../test && make && make test ; mv test_*.xml ../../output/test
+	cd tmp/test && cmake -DCMAKE_BUILD_TYPE=Debug ../../ && make -j`nproc` && make test ; mv test/test_*.xml ../../output/test
 
 clean:
 	rm -rf tmp

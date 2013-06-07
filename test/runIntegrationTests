@@ -1,12 +1,12 @@
 #!/bin/bash
 
 cd integration
-if [ -d ../../build ]
+if [ -d ../../src/CMakeFiles ]
 then
-    BUILD_DIR=../../build
-    PROJECT_ROOT=`(cd ../../../ ; pwd)`
+    BUILD_DIR=../../src
+    PROJECT_ROOT=`(cd ../../../../ ; pwd)`
 else
-    BUILD_DIR=../../tmp/build
+    BUILD_DIR=../../tmp/build/src
     PROJECT_ROOT=`(cd ../../ ; pwd)`
 fi
 
