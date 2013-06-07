@@ -1,5 +1,9 @@
 INSTALL_PREFIX	?=
-DEBBUILD_DIR	:=	tmp/wissbi-0.1-$(shell date -u "+%Y%m%d")_amd64
+BUILD_NUM		?=	0
+DEB_ARCH		:=  amd64
+VERSION			:=  0.9
+DEB_VERSION		:=	$(VERSION).$(BUILD_NUM)+$(shell git log --pretty=format:'%h' -n 1)
+DEBBUILD_DIR	:=  tmp/wissbi-$(DEB_VERSION)_$(DEB_ARCH)
 
 .PHONY:	test build
 
@@ -55,7 +59,7 @@ deb:
 	mkdir -p $(DEBBUILD_DIR)/DEBIAN
 	cd $(DEBBUILD_DIR) ; find . -type f | sed -e '/DEBIAN\/md5sums/d' | xargs md5sum | sed -e 's/\.\///g' > DEBIAN/md5sums
 	cp -f pkg/deb/* $(DEBBUILD_DIR)/DEBIAN/
-	sed -i -e 's/^Architecture:.*/Architecture: amd64/' $(DEBBUILD_DIR)/DEBIAN/control
+	sed -i -e 's/{arch}/$(DEB_ARCH)/g; s/{version}/$(DEB_VERSION)/g' $(DEBBUILD_DIR)/DEBIAN/control
 	dpkg-deb --build $(DEBBUILD_DIR)
 	mkdir -p output/artifacts
 	mv tmp/wissbi-*.deb output/artifacts/
