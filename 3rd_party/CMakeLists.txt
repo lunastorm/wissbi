@@ -6,7 +6,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(LIBCXX_LIBCXXRT_INCLUDE_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/libcxxrt/src)
   add_subdirectory(libcxx)
 
-  add_dependencies(cxx cxxrt-shared)
+  add_dependencies(cxx cxxrt-static)
 endif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 add_subdirectory(gmock-1.6.0)
