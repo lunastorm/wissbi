@@ -23,6 +23,8 @@ build:
 test: 3rd_party/gmock-1.6.0 tmp/test/3rd_party/shunit2
 	mkdir -p tmp/test
 	mkdir -p output/test
+	if ! grep WISSBI_LINK_LIBS 3rd_party/gmock-1.6.0/CMakeLists.txt ;\
+		then sed -i -e 's/^\(target_link_libraries(.*\))/\1 $${WISSBI_LINK_LIBS})/' 3rd_party/gmock-1.6.0/CMakeLists.txt ; fi
 	cd tmp/test && cmake -DCMAKE_BUILD_TYPE=Debug ../../ && make -j`nproc` && make test ; mv test/test_*.xml ../../output/test
 
 clean:
