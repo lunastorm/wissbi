@@ -16,7 +16,7 @@ tmp/test/3rd_party/shunit2:
 	mkdir -p tmp/test/3rd_party
 	cp -r 3rd_party/shunit2 tmp/test/3rd_party/
 
-build:
+build: 3rd_party/gmock-1.6.0
 	mkdir -p tmp/build
 	cd tmp/build && cmake -DCMAKE_BUILD_TYPE=Release -DLIBCXX_ENABLE_SHARED=off ../../ && make -j`nproc` wissbi-pub wissbi-sub wissbi-count wissbi-record
 
