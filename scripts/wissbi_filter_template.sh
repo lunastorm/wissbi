@@ -47,6 +47,7 @@ then
     exit 1
 fi
 
+FIFO_SOURCES=`set | grep -E "WISSBI_FILTER_SOURCE[0-9]+" || true`
 FIFO_SINKS=`set | grep -E "WISSBI_FILTER_SINK[0-9]+" || true`
 
 start() {
@@ -59,6 +60,7 @@ start() {
     for i in `seq 1 $WISSBI_FILTER_COUNT`
     do
         WISSBI_RESOLVED_FILTER_CMD=`echo "$WISSBI_FILTER_CMD" | sed -e "s/\\$i/$i/g"`
+        WISSBI_RESOLVED_FIFO_SOURCES=`echo "$FIFO_SOURCES" | sed -e "s/\\$i/$i/g"`
         WISSBI_RESOLVED_FIFO_SINKS=`echo "$FIFO_SINKS" | sed -e "s/\\$i/$i/g"`
         if [ -n "$WISSBI_DEBUG_DUMP" ]
         then
@@ -70,6 +72,16 @@ start() {
         FIFO=$FIFO_DIR/fifo
         mkfifo $FIFO
         chown -R $WISSBI_RUN_AS $FIFO_DIR
+
+        for FIFO_SOURCE in $FIFO_SOURCES
+        do
+            FIFO_SOURCE=`echo $FIFO_SOURCE | sed -e "s/.*'\(.*\)'/\1/"`
+            EXTRA_FIFO=`echo $FIFO_SOURCE | cut -d ':' -f 1`
+            EXTRA_SOURCE=`echo $FIFO_SOURCE | cut -d ':' -f 2`
+            mkfifo $EXTRA_FIFO
+            chown $WISSBI_RUN_AS $EXTRA_FIFO
+            $SH_CMD -c "env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $EXTRA_SOURCE > $EXTRA_FIFO 2>/dev/null ; rm -rf $EXTRA_FIFO" $WISSBI_RUN_AS >/dev/null 2>&1 &
+        done
 
         for FIFO_SINK in $FIFO_SINKS
         do

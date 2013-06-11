@@ -21,9 +21,10 @@ WISSBI_FILTER_SOURCE="test.in"
 WISSBI_FILTER_SINK="test.out"
 
 # You can send messages to fifos besides stdout.
-# You need to setup the rules in the format {FIFO_NAME}:{MESSAGE_SINK_NAME} like below:
-# WISSBI_FILTER_SINK2="/tmp/test2.fifo:test.out"
-# WISSBI_FILTER_SINK3="/tmp/test3.fifo:test.out"
+# You need to setup the rules in the format {FIFO_NAME}:{MESSAGE_[SOURCE|SINK]_NAME} like below:
+# WISSBI_FILTER_SOURCE2="/tmp/test-src2.fifo:test.in2"
+# WISSBI_FILTER_SINK2="/tmp/test-sink2.fifo:test.out2"
+# WISSBI_FILTER_SINK3="/tmp/test-sink3.fifo:test.out3"
 # Note that you have to open and close the fifo files explicitly to prevent resource leak
 
 WISSBI_FILTER_LOG_PREFIX="/tmp/filter-example"
