@@ -41,7 +41,7 @@ oneTimeSetUp()
 {
     if [ -z "$BUILD_DIR" ]
     then
-        BUILD_DIR=../../tmp/build
+        BUILD_DIR=../../tmp/build/src
     fi
 }
 

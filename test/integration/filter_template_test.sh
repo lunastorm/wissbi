@@ -66,7 +66,7 @@ EOF
 oneTimeSetUp()
 {
     : ${PROJECT_ROOT:="`(cd ../../ ; pwd)`"}
-    : ${BUILD_DIR:="`(cd ../../tmp/build ; pwd)`"}
+    : ${BUILD_DIR:="`(cd ../../tmp/build/src ; pwd)`"}
 }
 
 oneTimeTearDown()
