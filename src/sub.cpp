@@ -63,6 +63,7 @@ void run_sub(const std::string& src) {
     fds[0].events = POLLIN;
   
     while(run) {
+        sub_entry.renew();
         if(poll(fds, 1, 1000) <= 0) {
             continue;
         }
@@ -91,7 +92,6 @@ void run_sub(const std::string& src) {
                 filter.FilterLoop();
             }).detach();
         }
-        sub_entry.renew();
     }
 }
 
