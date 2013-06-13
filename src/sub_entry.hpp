@@ -24,7 +24,7 @@ class SubEntry {
     }
 
     ~SubEntry() {
-        system(("rm " + node_name_).c_str());
+        unlink(node_name_.c_str());
     }
 
     void renew() const {
