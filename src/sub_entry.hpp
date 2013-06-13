@@ -3,6 +3,10 @@
 
 #include "util.hpp"
 #include <stdlib.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #include <algorithm>
 #include <string>
 #include <stdexcept>
@@ -28,11 +32,16 @@ class SubEntry {
     }
 
     private:
-
     void renew_() const {
-        system(("mkdir " + meta_dir_ + "/sub/" + queue_name_ + " 2>/dev/null").c_str());
-        if(system(("touch " + node_name_).c_str()) != 0) {
+        mkdir((meta_dir_ + "/sub/" + queue_name_).c_str(), S_IRWXU);
+        int fd = open(node_name_.c_str(), O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+        if(fd == -1) {
             throw std::runtime_error(std::string("Cannot create subscriber entry at ") + node_name_);
+        }
+        int res = futimes(fd, NULL);
+        close(fd);
+        if(res == -1) {
+            throw std::runtime_error(std::string("Cannot update subscriber entry at ") + node_name_);
         }
     }
 
