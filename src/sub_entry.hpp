@@ -15,11 +15,12 @@ namespace wissbi {
 
 class SubEntry {
     public:
-    SubEntry(const std::string& meta_dir, const std::string& queue_name, const std::string& addr_str) :
+    SubEntry(const std::string& meta_dir, const std::string& queue_name, const std::string& addr_str, bool topic_mode = false) :
         meta_dir_(meta_dir), queue_name_(queue_name), addr_str_(addr_str)
     {
         node_name_ = meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," +
-                     wissbi::util::EscapeSubFolderPath(queue_name_);
+                     wissbi::util::EscapeSubFolderPath(queue_name_) +
+                     (topic_mode ? ("." + addr_str_) : "");
         renew_();
     }
 

@@ -26,7 +26,7 @@ void exit_signal_handler(int signum) {
 }
 
 template<class OutputWriter>
-void run_sub(const std::string& src) {
+void run_sub(const std::string& src, bool topic_mode) {
     int serv = socket(AF_INET, SOCK_STREAM, 0);
     int opts;
     opts = fcntl(serv, F_GETFL);
@@ -49,7 +49,7 @@ void run_sub(const std::string& src) {
     ostringstream tmp;
     tmp << util::GetHostIP() << ":" << ntohs(((sockaddr_in*)&serv_addr)->sin_port);
     
-    SubEntry sub_entry(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", src, tmp.str());
+    SubEntry sub_entry(getenv("WISSBI_META_DIR") != NULL ? getenv("WISSBI_META_DIR") : "/var/lib/wissbi", src, tmp.str(), topic_mode);
 
     OutputWriter output_writer;
     output_writer.mq_init("");
@@ -111,13 +111,18 @@ int main(int argc, char* argv[]){
         ofs << getpid() << endl;
     }
 
+    bool topic_mode = false;
+    if(getenv("WISSBI_SUB_TOPIC") != NULL && string(getenv("WISSBI_SUB_TOPIC")).compare("true") == 0) {
+        topic_mode = true;
+    }
+
     char* msg_format = getenv("WISSBI_MESSAGE_FORMAT");
     if(msg_format) {
         if(std::string(msg_format) == "line") {
-            run_sub<MsgFilter<io_policy::SysvMq, io_policy::Line>>(src);
+            run_sub<MsgFilter<io_policy::SysvMq, io_policy::Line>>(src, topic_mode);
         }
         else if(std::string(msg_format) == "length") {
-            run_sub<MsgFilter<io_policy::SysvMq, io_policy::Length>>(src);
+            run_sub<MsgFilter<io_policy::SysvMq, io_policy::Length>>(src, topic_mode);
         }
         else {
             logger::log("unknown message format: {}", msg_format);
@@ -125,7 +130,7 @@ int main(int argc, char* argv[]){
         }
     }
     else {
-        run_sub<MsgFilter<io_policy::SysvMq, io_policy::Line>>(src);
+        run_sub<MsgFilter<io_policy::SysvMq, io_policy::Line>>(src, topic_mode);
     }
     logger::log("wissbi-sub exited normally");
     return 0;
