@@ -12,7 +12,7 @@ rrd_folder = conf.get("metricd", "rrd_folder")
 counter_map = {}
 
 def rrd_name(name, direction):
-    return "wissbi.%s.%s" % (name.replace("/", "__"), direction)
+    return "wissbi.%s.%s" % (name.replace("/", "__").replace(":", "."), direction)
 
 def load_counter(name):
     try:

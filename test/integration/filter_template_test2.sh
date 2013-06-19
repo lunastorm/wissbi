@@ -59,10 +59,12 @@ EOF
     sleep 2
     $TMP_META_DIR/filterd stop
 
-    assertNotEquals "0" "`wc -l $TMP_META_DIR/filterd-1-filter.out | cut -d ' ' -f 1`"
-    assertNotEquals "0" "`wc -l $TMP_META_DIR/filterd-2-filter.out | cut -d ' ' -f 1`"
-    assertNotEquals "0" "`wc -l $TMP_META_DIR/filterd-3-filter.out | cut -d ' ' -f 1`"
-    assertNotEquals "0" "`wc -l $TMP_META_DIR/filterd-4-filter.out | cut -d ' ' -f 1`"
+    sum=0
+    sum=$((sum + `wc -l $TMP_META_DIR/filterd-1-filter.out | cut -d ' ' -f 1`))
+    sum=$((sum + `wc -l $TMP_META_DIR/filterd-2-filter.out | cut -d ' ' -f 1`))
+    sum=$((sum + `wc -l $TMP_META_DIR/filterd-3-filter.out | cut -d ' ' -f 1`))
+    sum=$((sum + `wc -l $TMP_META_DIR/filterd-4-filter.out | cut -d ' ' -f 1`))
+    assertEquals "1000" "$sum"
     cat $TMP_META_DIR/filterd-*-filter.out | sort > $TMP_META_DIR/output
     assertTrue "received messages are not correct" "diff $TMP_META_DIR/input $TMP_META_DIR/output > /dev/null"
 }

@@ -104,3 +104,9 @@ TEST_F(SubEntryTest, SubQueue) {
     wissbi::SubEntry sub_entry(meta_dir_, "foo/bar/test", "192.168.0.1:12345");
     EXPECT_EQ(0, system((std::string("ls ") + meta_dir_ + "/sub/foo/bar/test/192.168.0.1:12345,foo#bar#test").c_str()));
 }
+
+TEST_F(SubEntryTest, TopicMode) {
+    system((std::string("mkdir -p ") + meta_dir_ + "/sub/foo/bar").c_str());
+    wissbi::SubEntry sub_entry(meta_dir_, "foo/bar/test", "192.168.0.1:12345", true);
+    EXPECT_EQ(0, system((std::string("ls ") + meta_dir_ + "/sub/foo/bar/test/192.168.0.1:12345,foo#bar#test.192.168.0.1:12345").c_str()));
+}
