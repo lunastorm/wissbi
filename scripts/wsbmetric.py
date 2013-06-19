@@ -8,6 +8,9 @@ from gmetric import Gmetric
 conf = ConfigParser()
 conf.read("/etc/wissbi.conf")
 rrd_folder = conf.get("metricd", "rrd_folder")
+gmond_host = conf.get("metricd", "gmond_host")
+gmond_port = conf.get("metricd", "gmond_port")
+gmond_protocol = conf.get("metricd", "gmond_protocol")
 
 counter_map = {}
 
@@ -20,7 +23,7 @@ def load_counter(name):
     except:
         counter_map[name] = 0
 
-metric_sender = Gmetric("239.2.11.71", 8649, "multicast")
+metric_sender = Gmetric(gmond_host, gmond_port, gmond_protocol)
 while True:
     line = os.sys.stdin.readline().strip()
     if len(line) == 0:
