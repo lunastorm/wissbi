@@ -1,8 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import rrdtool
 from ConfigParser import ConfigParser
+from gmetric import Gmetric
 
 conf = ConfigParser()
 conf.read("/etc/wissbi.conf")
@@ -19,6 +20,7 @@ def load_counter(name):
     except:
         counter_map[name] = 0
 
+metric_sender = Gmetric("239.2.11.71", 8649, "multicast")
 while True:
     line = os.sys.stdin.readline().strip()
     if len(line) == 0:
@@ -32,8 +34,7 @@ while True:
     new_counter = counter_map[name] + int(value)
     if new_counter > 0xffffffff:
         new_counter = new_counter - 0xffffffff - 1
-    print "new counter is " + str(new_counter)
 
-    assert(0 == os.system("gmetric -n %s -v %d -t uint32 -s positive" % (name, new_counter)))
+    metric_sender.send(name, new_counter, TYPE="uint32", SLOPE="positive", GROUP="wissbi")
     counter_map[name] = new_counter
 
