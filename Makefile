@@ -53,6 +53,8 @@ install: build
 	cp -f scripts/wissbi_log_transformer.py $(INSTALL_PREFIX)/usr/bin
 	cp -f scripts/wsbforwarderd $(INSTALL_PREFIX)/etc/init.d
 	cp -f 3rd_party/ganglia-python/gmetric.py $(INSTALL_PREFIX)/usr/bin
+	cp -f contrib/wissbi_flow_graph.py $(INSTALL_PREFIX)/usr/bin
+	cp -f contrib/wissbi_flow_dump.py $(INSTALL_PREFIX)/usr/bin
 	cp -rf doc/* $(INSTALL_PREFIX)/usr/share/doc/wissbi
 
 .PHONY:	deb
