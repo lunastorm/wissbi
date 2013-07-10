@@ -17,7 +17,7 @@ else
 fi
 
 LINE_CNT=0
-while read line <&3
+while read -r line <&3
 do
     LINE_CNT=$((LINE_CNT+1))
     ERR="`echo $line | $EXECUTABLE 2>&1 1>/dev/null`"
