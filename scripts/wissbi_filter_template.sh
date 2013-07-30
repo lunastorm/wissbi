@@ -73,6 +73,7 @@ start() {
         mkfifo $FIFO
         chown -R $WISSBI_RUN_AS $FIFO_DIR
 
+        extra_src_cnt=0
         for FIFO_SOURCE in $FIFO_SOURCES
         do
             FIFO_SOURCE=`echo $FIFO_SOURCE | sed -e "s/.*'\(.*\)'/\1/"`
@@ -81,6 +82,8 @@ start() {
             mkfifo $EXTRA_FIFO
             chown $WISSBI_RUN_AS $EXTRA_FIFO
             $SH_CMD -c "env WISSBI_META_DIR=$WISSBI_META_DIR $WISSBI_SUB_BINARY $EXTRA_SOURCE > $EXTRA_FIFO 2>/dev/null ; rm -rf $EXTRA_FIFO" $WISSBI_RUN_AS >/dev/null 2>&1 &
+            echo $! > $WISSBI_FILTER_PID_PREFIX-extra-$extra_src_cnt.pid
+            extra_src_cnt=$((extra_src_cnt+1))
         done
 
         for FIFO_SINK in $FIFO_SINKS
@@ -121,12 +124,24 @@ start() {
     fi
 }
 
+get_child_recursive(){
+    pid=$1
+    child=`ps --ppid $pid | sed -e '1d; s/^[ ]*//' | cut -d ' ' -f 1`
+    if [ -z $child ]
+    then
+        echo $pid
+    else
+        echo `get_child_recursive $child`
+    fi
+}
+
 stop() {
     for pidfile in `ls $WISSBI_FILTER_PID_PREFIX-*.pid 2>/dev/null`
     do
         pid=`cat $pidfile`
-        echo "killing $pid"
-        kill $pid || true
+        target_pid=`get_child_recursive $pid`
+        echo "killing $target_pid"
+        kill $target_pid || true
         rm -f $pidfile
     done
 
