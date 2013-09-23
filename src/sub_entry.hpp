@@ -14,44 +14,43 @@
 namespace wissbi {
 
 class SubEntry {
-    public:
-    SubEntry(const std::string& meta_dir, const std::string& queue_name, const std::string& addr_str, bool topic_mode = false) :
-        meta_dir_(meta_dir), queue_name_(queue_name), addr_str_(addr_str)
-    {
-        node_name_ = meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," +
-                     wissbi::util::EscapeSubFolderPath(queue_name_) +
-                     (topic_mode ? ("." + addr_str_) : "");
-        renew_();
-    }
+public:
+  SubEntry(const std::string &meta_dir, const std::string &queue_name,
+           const std::string &addr_str, bool topic_mode = false)
+      : meta_dir_(meta_dir), queue_name_(queue_name), addr_str_(addr_str) {
+    node_name_ = meta_dir_ + "/sub/" + queue_name_ + "/" + addr_str_ + "," +
+                 wissbi::util::EscapeSubFolderPath(queue_name_) +
+                 (topic_mode ? ("." + addr_str_) : "");
+    renew_();
+  }
 
-    ~SubEntry() {
-        unlink(node_name_.c_str());
-    }
+  ~SubEntry() { unlink(node_name_.c_str()); }
 
-    void renew() const {
-        renew_();
-    }
+  void renew() const { renew_(); }
 
-    private:
-    void renew_() const {
-        mkdir((meta_dir_ + "/sub/" + queue_name_).c_str(), S_IRWXU);
-        int fd = open(node_name_.c_str(), O_CREAT, S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-        if(fd == -1) {
-            throw std::runtime_error(std::string("Cannot create subscriber entry at ") + node_name_);
-        }
-        int res = futimes(fd, NULL);
-        close(fd);
-        if(res == -1) {
-            throw std::runtime_error(std::string("Cannot update subscriber entry at ") + node_name_);
-        }
+private:
+  void renew_() const {
+    mkdir((meta_dir_ + "/sub/" + queue_name_).c_str(), S_IRWXU);
+    int fd = open(node_name_.c_str(), O_CREAT,
+                  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (fd == -1) {
+      throw std::runtime_error(
+          std::string("Cannot create subscriber entry at ") + node_name_);
     }
+    int res = futimes(fd, NULL);
+    close(fd);
+    if (res == -1) {
+      throw std::runtime_error(
+          std::string("Cannot update subscriber entry at ") + node_name_);
+    }
+  }
 
-    std::string meta_dir_;
-    std::string queue_name_;
-    std::string node_name_;
-    std::string addr_str_;
+  std::string meta_dir_;
+  std::string queue_name_;
+  std::string node_name_;
+  std::string addr_str_;
 };
 
 }
 
-#endif  // WISSBI_SUB_ENTRY_HPP_
+#endif // WISSBI_SUB_ENTRY_HPP_
