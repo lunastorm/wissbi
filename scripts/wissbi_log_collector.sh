@@ -19,7 +19,8 @@ mkfifo $FIFO
 tail -n 0 -F $FILE_PATTERN > $FIFO 2>/dev/null &
 SRC_PID=$!
 
-cat $FIFO | $TRANSFORMER_SCRIPT &
+cat $FIFO | $TRANSFORMER_SCRIPT | sed --unbuffered 's/\(.\{4000,4000\}\)/\1\\\
+/g' &
 
 trap "kill $SRC_PID ; rm -rf $FIFO_DIR" EXIT INT TERM
 
