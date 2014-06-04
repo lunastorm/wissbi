@@ -67,9 +67,16 @@ void run_sub(const std::string &src, bool topic_mode) {
   fds[0].fd = serv;
   fds[0].events = POLLIN;
 
+  int heartbeat_millis = 60000;
+  if(getenv("WISSBI_HEARTBEAT_SEC")) {
+    istringstream iss(getenv("WISSBI_HEARTBEAT_SEC"));
+    iss >> heartbeat_millis;
+    heartbeat_millis *= 1000;
+  }
+
   while (run) {
     sub_entry.renew();
-    if (poll(fds, 1, 1000) <= 0) {
+    if (poll(fds, 1, heartbeat_millis) <= 0) {
       continue;
     }
 

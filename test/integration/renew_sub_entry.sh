@@ -2,7 +2,7 @@
 
 testRemoveEntry()
 {
-    env WISSBI_META_DIR=$TMP_META_DIR $BUILD_DIR/wissbi-sub foo > $TMP_META_DIR/received &
+    env WISSBI_HEARTBEAT_SEC=1 WISSBI_META_DIR=$TMP_META_DIR $BUILD_DIR/wissbi-sub foo > $TMP_META_DIR/received &
     SUB_PID=$!
 
     sleep 1
