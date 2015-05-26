@@ -1,3 +1,5 @@
 tmp/
 output/
 3rd_party/gmock-1.6.0/
+3rd_party/libcxx/
+3rd_party/libcxxabi/

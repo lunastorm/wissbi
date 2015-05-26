@@ -9,6 +9,12 @@ DEBBUILD_DIR	:=  tmp/wissbi-$(DEB_VERSION)_$(DEB_ARCH)
 
 default: build
 
+3rd_party/libcxx:
+	svn co http://llvm.org/svn/llvm-project/libcxx/tags/RELEASE_351/final/ $@
+
+3rd_party/libcxxabi:
+	svn co http://llvm.org/svn/llvm-project/libcxxabi/tags/RELEASE_351/final/ $@
+
 3rd_party/gmock-1.6.0:
 	cd 3rd_party ; unzip gmock-1.6.0.zip
 
@@ -16,9 +22,9 @@ tmp/test/3rd_party/shunit2:
 	mkdir -p tmp/test/3rd_party
 	cp -r 3rd_party/shunit2 tmp/test/3rd_party/
 
-build: 3rd_party/gmock-1.6.0
+build: 3rd_party/gmock-1.6.0 3rd_party/libcxx 3rd_party/libcxxabi
 	mkdir -p tmp/build
-	cd tmp/build && cmake -DCMAKE_BUILD_TYPE=Release -DLIBCXX_ENABLE_SHARED=off ../../ && make -j`nproc` wissbi-pub wissbi-sub wissbi-count wissbi-record
+	cd tmp/build && cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release -DLIBCXX_ENABLE_SHARED=off ../../ && make -j`nproc` wissbi-pub wissbi-sub wissbi-count wissbi-record
 
 test: 3rd_party/gmock-1.6.0 tmp/test/3rd_party/shunit2
 	mkdir -p tmp/test
@@ -30,6 +36,12 @@ test: 3rd_party/gmock-1.6.0 tmp/test/3rd_party/shunit2
 clean:
 	rm -rf tmp
 	rm -rf output
+
+clean-all:
+	rm -rf tmp
+	rm -rf output
+	rm -rf 3rd_party/libcxx
+	rm -rf 3rd_party/libcxxabi
 
 .PHONY:	install
 install: build
